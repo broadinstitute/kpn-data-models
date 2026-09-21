@@ -58,7 +58,7 @@ def render_page(title, body, base_path, release, repository, script=''):
 <link rel="stylesheet" href="{esc(base)}/assets/style.css">
 {f'<script src="{esc(base)}/assets/{script}" defer></script>' if script else ''}</head>
 <body><a class="skip" href="#main">Skip to content</a>
-<header><nav aria-label="Main"><a class="brand" href="{esc(base)}/">KPN <span>data</span></a>
+<header><nav aria-label="Main"><a class="brand" href="{esc(base)}/" aria-label="KPN data home"><img src="{esc(base)}/assets/kpn-logo.png" alt="KPN" width="360" height="190"><span>data</span></a>
 <a href="{esc(base)}/kpn.trait/">Phenotypes</a><a href="https://github.com/{esc(repository)}">Repository</a>
 <a class="release" href="{esc(release_url)}">Release {esc(release)}</a></nav></header>
 <main id="main">{body}</main>
@@ -147,6 +147,7 @@ def build_site(data_dir, output, release, repository, base_path=''):
         raise ValueError('YAML and flat TSV phenotype IDs disagree')
     output.mkdir(parents=True, exist_ok=True)
     shutil.copytree(ROOT / 'site' / 'assets', output / 'assets')
+    shutil.copyfile(ROOT / 'kpn-logo.png', output / 'assets' / 'kpn-logo.png')
     downloads = output / 'downloads'
     downloads.mkdir()
     for name in EXPORTS:

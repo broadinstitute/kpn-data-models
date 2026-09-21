@@ -8,7 +8,8 @@ header { background: var(--navy); color: white; }
 nav { display: flex; align-items: center; gap: 2rem; max-width: 1480px; margin: auto; padding: 1.1rem 3rem; }
 nav a { color: white; text-decoration: none; }
 nav a:hover { color: #b7eef2; }
-.brand { font-size: 1.6rem; font-weight: 750; margin-right: 2rem; }
+.brand { display: inline-flex; align-items: center; gap: .75rem; font-size: 1.6rem; margin-right: 2rem; }
+.brand img { display: block; width: 88px; height: auto; }
 .brand span { font-weight: 400; }
 .release { margin-left: auto; padding: .3rem .8rem; background: #ffffff15; border-radius: 4px; font-size: .85rem; }
 main { max-width: 1480px; margin: auto; padding: 2.4rem 3rem 4rem; min-height: 76vh; }
