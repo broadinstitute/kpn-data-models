@@ -1,7 +1,9 @@
 name: Publish latest release to Pages
 on:
-  release:
-    types: [published, edited, released]
+  # Run in the default-branch context accepted by the github-pages environment.
+  workflow_run:
+    workflows: [Attach trait release files]
+    types: [completed]
   workflow_dispatch:
 permissions:
   contents: read
@@ -10,6 +12,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   build:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
