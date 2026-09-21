@@ -1,30 +1,32 @@
-# Portal Data Models — Agent Instructions
+# KPN Data Models — Agent Instructions
 
 ## Project Purpose
 
-Build a unified, standards-compliant data model for all phenotypes used across the A2F Knowledge Portal and related Flannick Lab resources. The goal is to:
+Build a unified, standards-compliant data model for all traits used across the A2F Knowledge Portal and related Flannick Lab resources. The goal is to:
 
-1. Assign every phenotype a new **stable numeric Portal Phenotype ID** (e.g., `KPN.TRAIT:0000001`)
+1. Assign every trait a **stable numeric KPN Trait ID** (e.g., `KPN.TRAIT:0000001`)
 2. Preserve the **legacy text-based ID** (e.g., `AF`, `gcat_trait_Moyamoya_disease`, `HermanskyPudlak_syndrome_Orphanet_79430`)
-3. Map each phenotype to as many external ontology IDs as possible (EFO, MeSH, MONDO, HP, DOID, Orphanet, CHEBI, OBA, CMO)
+3. Map each trait to as many external ontology IDs as possible (EFO, MeSH, MONDO, HP, DOID, Orphanet, CHEBI, OBA, CMO)
 4. Classify each mapping relationship using SKOS predicates (`skos:exactMatch`, `skos:broadMatch`, `skos:narrowMatch`, `skos:relatedMatch`, `skos:closeMatch`)
-5. Classify each phenotype by **trait type** (disease, measurement, biomarker, composite/interaction, adjusted, subgroup, etc.)
+5. Classify each trait by **trait type** (disease, measurement, biomarker, composite/interaction, adjusted, subgroup, etc.)
 6. Output everything as a **LinkML schema** with data conforming to the **SSSOM (Simple Standard for Sharing Ontological Mappings)** specification
 
 ---
 
 ## Source Data Files
 
-All source files are in `raw/`. **Do not modify source files** — treat them as read-only inputs.
+All source files are in `raw/trait/`. **Do not modify source files** — treat them as read-only inputs.
 
-### 1. `Phenotypes.tsv` — The Master Phenotype Registry (PRIMARY SOURCE OF TRUTH)
+The KPN object category is **Traits**, with code and data organized under `trait/`. Keep existing schema class identifiers, field names (`phenotypes`, `phenotype_name`, etc.), and type values such as `phenotype`. Original raw filenames remain unchanged for provenance.
 
-- **6,982 phenotypes** (no header row label — columns are tab-separated)
+### 1. `Phenotypes.tsv` — The Master Trait Registry (PRIMARY SOURCE OF TRUTH)
+
+- **6,982 traits** (no header row label — columns are tab-separated)
 - Columns: `trait_group | phenotype | phenotype_name | display_group`
 - Three trait groups:
-  - **`portal`** (1,437 rows): Core portal phenotypes. Legacy IDs like `AF`, `BMI`, `AFxBMI`, `AlbInT2D`. Preserve this raw label; normalize it to `KPN` in generated records and registry identity matching.
+  - **`portal`** (1,437 rows): Core portal traits. Legacy IDs like `AF`, `BMI`, `AFxBMI`, `AlbInT2D`. Preserve this raw label; normalize it to `KPN` in generated records and registry identity matching.
   - **`gcat_trait`** (4,022 rows): GWAS Catalog-sourced traits. IDs have `gcat_trait_` prefix + snake_case name (e.g., `gcat_trait_Moyamoya_disease`)
-  - **`rare_v2`** (1,523 rows): Rare disease phenotypes. IDs embed Orphanet codes (e.g., `HermanskyPudlak_syndrome_Orphanet_79430` → Orphanet:79430)
+  - **`rare_v2`** (1,523 rows): Rare disease traits. IDs embed Orphanet codes (e.g., `HermanskyPudlak_syndrome_Orphanet_79430` → Orphanet:79430)
 - `display_group` provides a disease-area category (e.g., `CARDIOVASCULAR`, `GLYCEMIC`, `NEUROLOGICAL` — ~50 categories)
 - `phenotype_name` is the human-readable label — this is key for ontology matching
 
@@ -32,18 +34,18 @@ All source files are in `raw/`. **Do not modify source files** — treat them as
 
 - **8,971 rows** mapping portal IDs → MeSH descriptor IDs (e.g., `AF → D001281`)
 - **1,745 unique MeSH IDs**, **6,943 unique portal IDs**
-- Many portal IDs map to **multiple MeSH IDs** (composite phenotypes). For example:
+- Many portal IDs map to **multiple MeSH IDs** (composite traits). For example:
   - `AFxBMI` → `D001281` (Atrial Fibrillation) AND `D015992` (Body Mass Index)
   - `AlbInT2D` → `D000419` (Albumin) AND `D003924` (Diabetes Mellitus, Type 2)
-- This file covers portal AND gcat_trait AND rare_v2 phenotypes — not just the `portal` group
+- This file covers portal AND gcat_trait AND rare_v2 traits — not just the `portal` group
 - These mappings are a mix of automated and manual curation — trust them as high quality starting points
 
 ### 3. `amp-traits-mapping-portal-phenotypes_06262024.csv` — AMP/EFO Mapping Effort
 
-- **1,119 rows** — a prior colleague's attempt to map portal phenotypes to EFO
+- **1,119 rows** — a prior colleague's attempt to map portal traits to EFO
 - Columns: `id, name, description, dichotomous, group, PMID example, PMID in GWAS CATALOG?, complex traits, Relation, EFO_term, API_EFO_ID, EFO_id, comments, supported by OLS, supported by Zooma, GWAS catalog UI search, Lizzy's suggestion, suggestion applied, Maria's suggestion, import_new_terms`
 - Key columns for this work:
-  - `name`: the portal phenotype legacy ID
+  - `name`: the portal trait legacy ID
   - `description`: human-readable description
   - `complex traits`: `simple` (808) or `complex` (196) — indicates if the trait is a single concept or a composite
   - `Relation`: mapping quality — `Exact match` (433), `Match to parent` (414 — these are broadMatch), `need import` (20), etc.
@@ -60,7 +62,7 @@ All source files are in `raw/`. **Do not modify source files** — treat them as
   - Column 19 `BACKGROUND TRAIT`: for interaction studies
   - Column 20-21 `MAPPED BACKGROUND TRAIT` / `MAPPED BACKGROUND TRAIT URI`
   - Column 25 `GXE`: `yes`/`no` — flags gene-environment interaction studies (881 are `yes`)
-- Use this to **extract EFO/MONDO mappings for gcat_trait phenotypes** by matching `DISEASE/TRAIT` or `MAPPED_TRAIT` to the `phenotype_name` from `Phenotypes.tsv`
+- Use this to **extract EFO/MONDO mappings for gcat_trait traits** by matching `DISEASE/TRAIT` or `MAPPED_TRAIT` to the `phenotype_name` from `Phenotypes.tsv`
 
 ### 5. `gcat_v1.0.3.1.1.tsv` — GWAS Catalog Ancestry/Sample Data (165,174 rows)
 
@@ -74,9 +76,9 @@ All source files are in `raw/`. **Do not modify source files** — treat them as
 
 ---
 
-## Phenotype Classification Taxonomy
+## Trait Classification Taxonomy
 
-Define a LinkML enum (or SKOS concept scheme) for phenotype trait types. Based on the data, the following types exist:
+Define a LinkML enum (or SKOS concept scheme) for trait types. Based on the data, the following types exist:
 
 ### Simple Trait Types
 - **`disease`**: A diagnosable disease or condition (e.g., `AF` → Atrial Fibrillation, `AD` → Alzheimer Disease)
@@ -89,7 +91,7 @@ Define a LinkML enum (or SKOS concept scheme) for phenotype trait types. Based o
 - **`stratified`**: Trait measured within a subpopulation or conditional on another trait (e.g., `AlbInT2D` = albumin in T2D patients, `AnyCVDinT2D`, `AllDKDvControl_DM`)
 - **`adjusted`**: Trait adjusted for covariates (e.g., `ISIadjAgeSexBMI`, `CKDextremesadjHbA1cBMI`, `BMI_adjSMK`)
 - **`subgroup`**: Age/sex/ancestry-specific subgroup (e.g., `AFxAGEo65` = AF in over-65, `BMI1yr` = BMI at 1 year)
-- **`composite`**: Combined phenotypes or alternative definitions (e.g., `AD_or_AD_history`, `AfibFlutter`)
+- **`composite`**: Combined traits or alternative definitions (e.g., `AD_or_AD_history`, `AfibFlutter`)
 
 For composite types, the mapping should capture **all component concepts**. For example:
 - `AFxBMI` should map to BOTH `EFO_0000275` (atrial fibrillation) AND `EFO_0004340` (body mass index), with the relationship to each being `skos:relatedMatch` and metadata indicating it's an interaction.
@@ -105,8 +107,8 @@ Write a Python script (`scripts/harvest_existing_mappings.py`) that consolidates
 1. **From `portal_to_mesh_curated_collected.tsv`**: Extract all `portal_id → MeSH` pairs
 2. **From `amp-traits-mapping-portal-phenotypes_06262024.csv`**: Extract all `name → EFO_id` pairs with their `Relation` type
    - Map `Relation` values to SKOS: `Exact match` → `skos:exactMatch`, `Match to parent` → `skos:broadMatch`
-3. **From `Phenotypes.tsv` rare_v2 rows**: Extract embedded Orphanet IDs from the phenotype column (regex: `Orphanet_(\d+)`)
-4. **From `gcat_v1.0.3.1.tsv`**: For each `gcat_trait` phenotype, find matching GWAS Catalog studies and extract `MAPPED_TRAIT_URI` (gives EFO/MONDO IRIs directly)
+3. **From `Phenotypes.tsv` rare_v2 rows**: Extract embedded Orphanet IDs from the `phenotype` column (regex: `Orphanet_(\d+)`)
+4. **From `gcat_v1.0.3.1.tsv`**: For each `gcat_trait` trait, find matching GWAS Catalog studies and extract `MAPPED_TRAIT_URI` (gives EFO/MONDO IRIs directly)
 5. **From `efo.owl`**: Parse cross-references (`hasDbXref`, `exactMatch` annotations) to build an EFO ↔ MeSH ↔ MONDO ↔ HP ↔ DOID lookup table. This is the most valuable step — EFO already contains most cross-ontology links.
 
 Output: A single consolidated TSV with columns:
@@ -116,7 +118,7 @@ portal_phenotype_id | source_file | target_ontology | target_id | target_label |
 
 ### Phase 2: Fill Gaps via OLS API (Automated)
 
-Write a script (`scripts/ols_bulk_lookup.py`) that takes unmapped phenotypes and queries the OLS (Ontology Lookup Service) REST API:
+Write a script (`scripts/trait/v0.0.1/03_enrich.py`) that takes unmapped traits and queries the OLS (Ontology Lookup Service) REST API:
 
 - Base URL: `https://www.ebi.ac.uk/ols4/api/`
 - For each `phenotype_name`, search across ontologies:
@@ -134,7 +136,7 @@ Output: Append to the consolidated mapping file from Phase 1.
 
 ### Phase 3: Expert Curation via MCP Tools (Agent-Assisted)
 
-For phenotypes that remain unmapped or have ambiguous matches after Phases 1-2, use the **ontology-lookup-service MCP tools** interactively:
+For traits that remain unmapped or have ambiguous matches after Phases 1-2, use the **ontology-lookup-service MCP tools** interactively:
 
 - `mcp__ontology-lookup-service__searchClasses` — search within a specific ontology
 - `mcp__ontology-lookup-service__search` — search across all OLS ontologies
@@ -142,12 +144,12 @@ For phenotypes that remain unmapped or have ambiguous matches after Phases 1-2, 
 - `mcp__ontology-lookup-service__getSimilarClasses` — embedding-based similarity (call `listEmbeddingModels` first)
 - `mcp__ontology-lookup-service__getAncestors` / `getDescendants` — navigate hierarchies
 
-**Prioritize curation effort**: Focus on the 1,437 `portal` phenotypes first (they're the most important and most complex). The `gcat_trait` phenotypes should mostly resolve automatically via GWAS Catalog mappings. The `rare_v2` phenotypes already have Orphanet IDs embedded.
+**Prioritize curation effort**: Focus on the 1,437 `portal` traits first (they're the most important and most complex). The `gcat_trait` traits should mostly resolve automatically via GWAS Catalog mappings. The `rare_v2` traits already have Orphanet IDs embedded.
 
-For **composite phenotypes** (interaction/stratified/adjusted), decompose them:
+For **composite traits** (interaction/stratified/adjusted), decompose them:
 1. Identify the component concepts (e.g., `AFxBMI` → "atrial fibrillation" + "body mass index")
 2. Map each component to ontology IDs independently
-3. Record the phenotype's `trait_type` as `interaction`/`stratified`/`adjusted`
+3. Record the trait's `trait_type` as `interaction`/`stratified`/`adjusted`
 4. If there's a single best "primary" concept, mark it `skos:closeMatch`; mark modifiers as `skos:relatedMatch`
 
 ### Phase 4: Assign Stable Portal IDs
@@ -155,8 +157,8 @@ For **composite phenotypes** (interaction/stratified/adjusted), decompose them:
 After mappings are complete, assign new numeric IDs:
 
 - Format: `KPN.TRAIT:{NNNNNNN}` (7-digit zero-padded, e.g., `KPN.TRAIT:0000001`)
-- Reuse the numeric IDs in the existing versioned registry, keyed by source category and legacy phenotype ID. Treat legacy `portal` and current `KPN` source categories as the same identity. Append new IDs above the existing maximum; never renumber existing records. For a first-ever registry only, sort by `trait_group` (KPN first, then gcat_trait, then rare_v2), then by `display_group`, then alphabetically by `phenotype`
-- Keep a registry mapping file (`data/portal_id_registry.tsv`) with columns:
+- Reuse the numeric IDs in the existing versioned registry, keyed by source category and legacy trait ID. Treat legacy `portal` and current `KPN` source categories as the same identity. Append new IDs above the existing maximum; never renumber existing records. For a first-ever registry only, sort by `trait_group` (KPN first, then gcat_trait, then rare_v2), then by `display_group`, then alphabetically by `phenotype`
+- Keep a registry mapping file (`versions/trait/v0.0.1/kpn_trait_registry.tsv`) with columns:
   ```
   portal_id | legacy_trait_group | legacy_phenotype_id | phenotype_name | display_group | trait_type
   ```
@@ -165,7 +167,7 @@ After mappings are complete, assign new numeric IDs:
 
 ## Output Data Model (LinkML + SSSOM)
 
-### LinkML Schema (`schema/portal_phenotype.yaml`)
+### LinkML Schema (`schemas/trait/kpn_trait.yaml`)
 
 Define a LinkML schema with these classes:
 
@@ -313,7 +315,7 @@ enums:
       inherited: { description: "Inherited from a prior mapping file (portal_to_mesh or AMP)" }
 ```
 
-### SSSOM Output (`data/kpn_trait_mappings.sssom.tsv`)
+### SSSOM Output (`versions/trait/v0.0.1/kpn_trait_mappings.sssom.tsv`)
 
 In addition to the LinkML instances, produce a standard SSSOM TSV:
 
@@ -339,21 +341,24 @@ KPN.TRAIT:0000001	Atrial Fibrillation	skos:exactMatch	MONDO:0004981	atrial fibri
 ### Step 0: Project Setup
 - Create directory structure:
   ```
-  portal-data-models/
-  ├── CLAUDE.md          (this file)
-  ├── raw/               (source data — DO NOT MODIFY)
-  ├── schema/            (LinkML schema definitions)
-  ├── scripts/           (Python processing scripts)
-  ├── data/              (output data files)
-  └── reports/           (curation reports, gap analysis)
+  kpn-data-models/
+  ├── CLAUDE.md                         (agent guidance)
+  ├── INSTRUCTIONS.md                   (curation instructions)
+  ├── raw/trait/                        (original source data — DO NOT MODIFY)
+  ├── schemas/trait/kpn_trait.yaml       (LinkML schema)
+  ├── scripts/trait/v0.0.1/              (versioned processing scripts)
+  ├── data/trait/                       (ignored intermediate data)
+  ├── versions/trait/v0.0.1/             (checked-in exports and coverage report)
+  ├── scripts/site/                     (trait browser generator)
+  └── site/assets/                      (shared browser styles and scripts)
   ```
 - Initialize a `pyproject.toml` with dependencies: `linkml`, `sssom`, `pronto`, `rdflib`, `aiohttp`, `pandas`
-- **IMPORTANT**: This is a mounted environment. Do not run `uv`, `pip install`, or activate virtual environments. Write the scripts and ask the user to install any missing dependencies.
+- Install the locked local dependencies with `uv sync --frozen`. Run the versioned entry point with `./scripts/trait/v0.0.1/generate.sh --from-release versions/trait/v0.0.1` for a reproducible offline rebuild.
 
 ### Step 1: Parse and Consolidate Source Data
-- Script: `scripts/01_parse_sources.py`
+- Script: `scripts/trait/v0.0.1/01_parse_sources.py`
 - Read all source files into a unified internal representation
-- For each phenotype in `Phenotypes.tsv`, create a record with:
+- For each trait in `Phenotypes.tsv`, create a record with:
   - `legacy_trait_group`, `legacy_id`, `phenotype_name`, `display_group`
   - Classify `trait_type` based on naming patterns:
     - `rare_v2` → `rare_disease`
@@ -365,61 +370,62 @@ KPN.TRAIT:0000001	Atrial Fibrillation	skos:exactMatch	MONDO:0004981	atrial fibri
     - AMP file `dichotomous` == 1 → likely `disease`
   - Attach existing MeSH mappings from `portal_to_mesh_curated_collected.tsv`
   - Attach existing EFO mappings from `amp-traits-mapping-portal-phenotypes_06262024.csv`
-  - For `gcat_trait` phenotypes, match to GWAS Catalog and extract `MAPPED_TRAIT_URI`
-  - For `rare_v2` phenotypes, extract embedded Orphanet IDs
-- Output: `data/01_consolidated_phenotypes.json`
+  - For `gcat_trait` traits, match to GWAS Catalog and extract `MAPPED_TRAIT_URI`
+  - For `rare_v2` traits, extract embedded Orphanet IDs
+- Output: `data/trait/01_consolidated_traits.json`
 
 ### Step 2: Extract Cross-References from EFO OWL
-- Script: `scripts/02_parse_efo_xrefs.py`
-- Parse `raw/efo.owl` to build a mapping table: EFO_ID ↔ {MeSH, MONDO, HP, DOID, Orphanet, ...}
-- Also parse `raw/ORDO_en_4.5.owl` to get Orphanet ↔ {MONDO, HP, ...} mappings
-- Output: `data/02_ontology_xref_table.tsv`
+- Script: `scripts/trait/v0.0.1/02_parse_efo_xrefs.py`
+- Parse `raw/trait/efo.owl` to build a mapping table: EFO_ID ↔ {MeSH, MONDO, HP, DOID, Orphanet, ...}
+- Also parse `raw/trait/ORDO_en_4.5.owl` to get Orphanet ↔ {MONDO, HP, ...} mappings
+- Output: `data/trait/02_ontology_xref_table.tsv`
 
 ### Step 3: Enrich via OLS API
-- Script: `scripts/03_ols_bulk_lookup.py`
-- For phenotypes still missing key mappings (especially EFO or MONDO), query OLS REST API
-- Prioritize: portal phenotypes > gcat_trait > rare_v2
+- Script: `scripts/trait/v0.0.1/03_enrich.py`
+- For traits still missing key mappings (especially EFO or MONDO), query OLS REST API
+- Prioritize: KPN traits > gcat_trait > rare_v2
 - For each unique MeSH ID, fetch OLS entry and extract cross-references
-- For unmapped phenotype names, do text search across EFO/MONDO/HP
-- Output: `data/03_ols_enriched_mappings.tsv`
+- For unmapped trait names, do text search across EFO/MONDO/HP
+- Output: `data/trait/03_ols_enriched_mappings.json`
 
 ### Step 4: Agent-Assisted Curation
 - **This is where you (the agent) apply expert judgment using MCP tools**
-- Read `data/03_ols_enriched_mappings.tsv` and identify:
-  - Phenotypes with zero mappings
-  - Phenotypes with low-confidence mappings
-  - Composite phenotypes that need decomposition
+- Read `data/trait/03_ols_enriched_mappings.json` and identify:
+  - Traits with zero mappings
+  - Traits with low-confidence mappings
+  - Composite traits that need decomposition
 - For each, use the ontology-lookup-service MCP tools to search, compare, and decide
 - Use `mcp__ontology-lookup-service__searchClasses` with `ontologyId` filters (efo, mondo, hp, mesh)
 - Use `mcp__ontology-lookup-service__getSimilarClasses` for fuzzy/embedding-based matching
 - Use `mcp__ontology-lookup-service__getAncestors` to verify hierarchy relationships (is the match too broad? too narrow?)
-- Record decisions in `data/04_curated_mappings.tsv` with `mapping_justification` = `manual_curation`
-- Work in batches. For efficiency, use subagents to curate independent phenotype groups in parallel (by `display_group`).
+- Record decisions in `data/trait/04_curated_mappings.tsv` with `mapping_justification` = `manual_curation`
+- Work in batches. For efficiency, use subagents to curate independent trait groups in parallel (by `display_group`).
 
 ### Step 5: Assign Stable IDs and Generate Final Output
-- Script: `scripts/05_generate_output.py`
+- Script: `scripts/trait/v0.0.1/04_generate_output.py`
 - Assign `KPN.TRAIT:NNNNNNN` IDs
+- Use the existing LinkML schema at `schemas/trait/kpn_trait.yaml`.
 - Generate:
-  - `schema/portal_phenotype.yaml` — the LinkML schema (use the template above)
-  - `data/kpn_trait_registry.tsv` — the ID registry
-  - `data/kpn_trait_mappings.sssom.tsv` — SSSOM mapping set
-  - `data/kpn_trait_collection.yaml` — full LinkML instance data
-- Validate with `linkml-validate` and `sssom validate` (ask user to run)
+  - `versions/trait/v0.0.1/kpn_trait_registry.tsv` — the ID registry
+  - `versions/trait/v0.0.1/kpn_trait_mappings.sssom.tsv` — SSSOM mapping set
+  - `versions/trait/v0.0.1/kpn_trait_collection.yaml` — full LinkML instance data
+  - `versions/trait/v0.0.1/kpn_trait_flat.tsv` — one row per mapping
+- Run `uv run python -m unittest discover -s tests -v` to check the complete collection against the schema, regression baseline, stable IDs, offline regeneration, and site output.
 
 ### Step 6: Quality Report
-- Script: `scripts/06_quality_report.py`
-- Generate `reports/kpn_trait_coverage.md`:
-  - Mapping coverage by ontology (% of phenotypes with EFO, MeSH, MONDO, HP mapping)
+- Script: `scripts/trait/v0.0.1/05_quality_report.py`
+- Generate `versions/trait/v0.0.1/kpn_trait_coverage.md`:
+  - Mapping coverage by ontology (% of traits with EFO, MeSH, MONDO, HP mapping)
   - Coverage by trait_group and display_group
-  - List of phenotypes with no mappings
-  - List of phenotypes with only low-confidence mappings
+  - List of traits with no mappings
+  - List of traits with only low-confidence mappings
   - Distribution of mapping predicates (how many exactMatch vs broadMatch, etc.)
 
 ---
 
 ## Key Heuristics for Trait Type Classification
 
-Use these patterns on the `legacy_id` (phenotype column) from `Phenotypes.tsv`:
+Use these patterns on the `legacy_id` (`phenotype` column) from `Phenotypes.tsv`:
 
 | Pattern | Example | Trait Type |
 |---|---|---|
@@ -478,7 +484,7 @@ mcp__ontology-lookup-service__getSimilarClasses(classIri="http://www.ebi.ac.uk/e
 mcp__ontology-lookup-service__getAncestors(ontologyId="efo", classIri="http://www.ebi.ac.uk/efo/EFO_0000275")
 mcp__ontology-lookup-service__getDescendants(ontologyId="efo", classIri="http://www.ebi.ac.uk/efo/EFO_0000275")
 ```
-- Use to verify `broadMatch` vs `exactMatch` — if the portal phenotype is a child of the OLS result, the match is `narrowMatch`; if parent, `broadMatch`.
+- Use to verify `broadMatch` vs `exactMatch` — if the portal trait is a child of the OLS result, the match is `narrowMatch`; if parent, `broadMatch`.
 
 ---
 
@@ -493,9 +499,9 @@ mcp__ontology-lookup-service__getDescendants(ontologyId="efo", classIri="http://
 
 ## Quality Standards
 
-- Every phenotype in `Phenotypes.tsv` MUST have a `KPN.TRAIT:NNNNNNN` ID and a `trait_type` classification
-- Target: >90% of `KPN` phenotypes mapped to at least one of {EFO, MONDO, MeSH}
-- Target: >95% of `rare_v2` phenotypes mapped to Orphanet (they already have IDs embedded)
-- Target: >80% of `gcat_trait` phenotypes mapped to EFO (via GWAS Catalog)
+- Every trait in `Phenotypes.tsv` MUST have a `KPN.TRAIT:NNNNNNN` ID and a `trait_type` classification
+- Target: >90% of `KPN` traits mapped to at least one of {EFO, MONDO, MeSH}
+- Target: >95% of `rare_v2` traits mapped to Orphanet (they already have IDs embedded)
+- Target: >80% of `gcat_trait` traits mapped to EFO (via GWAS Catalog)
 - Every mapping MUST have a `mapping_predicate` and `mapping_justification`
 - No mapping should have `confidence` > 0.9 unless it's been validated (by cross-reference, exact lexical match, or manual curation)

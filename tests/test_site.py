@@ -7,7 +7,7 @@ from pathlib import Path
 
 import yaml
 
-from test_release import ROOT, RELEASE, load_module
+from test_release import ROOT, LATEST_RELEASE as RELEASE, load_module
 
 site = load_module('site_builder', 'scripts/site/build.py')
 
@@ -33,7 +33,7 @@ class SiteTests(unittest.TestCase):
         self.output = self.root / 'public'
 
     def build(self, base='/kpn-data-models'):
-        site.build_site(self.data, self.output, 'v0.0.1', 'broadinstitute/kpn-data-models', base)
+        site.build_site(self.data, self.output, 'v0.0.2', 'broadinstitute/kpn-data-models', base)
 
     def test_direct_pages_complete_record_provenance_and_escaping(self):
         self.build()
@@ -46,7 +46,7 @@ class SiteTests(unittest.TestCase):
         self.assertIn('portal_to_mesh_curated_collected.tsv', page)
         self.assertIn('<dt>Source collection</dt><dd>KPN</dd>', page)
         self.assertIn('/kpn-data-models/assets/style.css', page)
-        self.assertIn('/releases/tag/v0.0.1', page)
+        self.assertIn('/releases/tag/v0.0.2', page)
         self.assertEqual(json.loads((self.output / 'kpn.trait/0000001/record.json').read_text()), self.record)
         self.assertTrue((self.output / '404.html').exists())
         self.assertTrue((self.output / '.nojekyll').exists())

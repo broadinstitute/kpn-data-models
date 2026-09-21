@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Generate portal phenotype data model from source files.
+# Generate the KPN trait data model from source files.
 #
 # Usage:
-#   ./scripts/phenotype/v0.0.1/generate.sh --from-release versions/phenotype/v0.0.1
-#   ./scripts/phenotype/v0.0.1/generate.sh --skip-owl --skip-api
+#   ./scripts/trait/v0.0.1/generate.sh --from-release versions/trait/v0.0.1
+#   ./scripts/trait/v0.0.1/generate.sh --skip-owl --skip-api
 #
 # Pipeline:
 #   01_parse_sources.py     — parse raw source files
@@ -34,54 +34,54 @@ while [[ $# -gt 0 ]]; do
 done
 
 echo "============================================"
-echo "Portal Phenotype Data Model — v${VERSION}"
+echo "KPN Trait Data Model — v${VERSION}"
 echo "============================================"
 echo ""
 
 if [ -n "$FROM_RELEASE" ]; then
-    uv run python scripts/phenotype/v0.0.1/04_generate_output.py --version "$VERSION" --from-release "$FROM_RELEASE"
-    uv run python scripts/phenotype/v0.0.1/05_quality_report.py --version "$VERSION"
+    uv run python scripts/trait/v0.0.1/04_generate_output.py --version "$VERSION" --from-release "$FROM_RELEASE"
+    uv run python scripts/trait/v0.0.1/05_quality_report.py --version "$VERSION"
     exit 0
 fi
 
 # Step 1: Parse sources
 echo ">>> Step 1: Parsing source files..."
-uv run python scripts/phenotype/v0.0.1/01_parse_sources.py
+uv run python scripts/trait/v0.0.1/01_parse_sources.py
 echo ""
 
 # Step 2: Parse OWL cross-references (slow — ~75s)
-XREF_FILE="data/phenotype/02_ontology_xref_table.tsv"
+XREF_FILE="data/trait/02_ontology_xref_table.tsv"
 if [ "$SKIP_OWL" = true ] && [ -f "$XREF_FILE" ]; then
     echo ">>> Step 2: Skipping OWL parsing (using cached $XREF_FILE)"
 else
     echo ">>> Step 2: Parsing EFO/ORDO OWL files (this takes ~75 seconds)..."
-    uv run python scripts/phenotype/v0.0.1/02_parse_efo_xrefs.py
+    uv run python scripts/trait/v0.0.1/02_parse_efo_xrefs.py
 fi
 echo ""
 
 # Step 3: Enrich mappings
 if [ "$SKIP_API" = true ]; then
     echo ">>> Step 3: Enriching mappings (API calls skipped)..."
-    uv run python scripts/phenotype/v0.0.1/03_enrich.py --skip-api
+    uv run python scripts/trait/v0.0.1/03_enrich.py --skip-api
 else
     echo ">>> Step 3: Enriching mappings (OLS API + GWAS Catalog + labels)..."
-    uv run python scripts/phenotype/v0.0.1/03_enrich.py
+    uv run python scripts/trait/v0.0.1/03_enrich.py
 fi
 echo ""
 
 # Step 4: Generate versioned output
 echo ">>> Step 4: Generating v${VERSION} output..."
-uv run python scripts/phenotype/v0.0.1/04_generate_output.py --version "$VERSION"
+uv run python scripts/trait/v0.0.1/04_generate_output.py --version "$VERSION"
 echo ""
 
 # Step 5: Quality report
 echo ">>> Step 5: Quality report..."
-uv run python scripts/phenotype/v0.0.1/05_quality_report.py --version "$VERSION"
+uv run python scripts/trait/v0.0.1/05_quality_report.py --version "$VERSION"
 echo ""
 
 echo "============================================"
-echo "Done! Output in versions/phenotype/v${VERSION}/"
+echo "Done! Output in versions/trait/v${VERSION}/"
 echo "============================================"
 echo ""
 echo "Files:"
-ls -la "versions/phenotype/v${VERSION}/" 2>/dev/null || echo "  (no output yet)"
+ls -la "versions/trait/v${VERSION}/" 2>/dev/null || echo "  (no output yet)"

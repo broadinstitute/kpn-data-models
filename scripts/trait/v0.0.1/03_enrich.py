@@ -11,14 +11,14 @@ Combines the logic from:
   - 08_fix_flagged_mappings.py — validation fixes
 
 Reads:
-  - data/phenotype/01_consolidated_phenotypes.json   (from Step 1)
-  - data/phenotype/02_ontology_xref_table.tsv        (from Step 2)
-  - raw/phenotype/gcat_v1.0.3.1.tsv                  (GWAS Catalog)
+  - data/trait/01_consolidated_traits.json   (from Step 1)
+  - data/trait/02_ontology_xref_table.tsv        (from Step 2)
+  - raw/trait/gcat_v1.0.3.1.tsv                  (GWAS Catalog)
   - .env  (optional, for OMIM_API_KEY)
 
 Writes:
-  - data/phenotype/03_ols_enriched_mappings.json
-  - data/phenotype/03_ols_lookup_log.tsv
+  - data/trait/03_ols_enriched_mappings.json
+  - data/trait/03_ols_lookup_log.tsv
 
 Dependencies: aiohttp, pandas, python-dotenv
 """
@@ -47,8 +47,8 @@ except ImportError:
 # Paths
 # ──────────────────────────────────────────────────────────
 ROOT = Path(__file__).resolve().parent.parent.parent.parent
-RAW = ROOT / "raw" / "phenotype"
-DATA = ROOT / "data" / "phenotype"
+RAW = ROOT / "raw" / "trait"
+DATA = ROOT / "data" / "trait"
 
 # ──────────────────────────────────────────────────────────
 # OLS API settings
@@ -670,7 +670,7 @@ def phase4_broad_efo(records: list[dict]) -> int:
 # Phase 4b: ICD10CM chaining via MONDO
 # ══════════════════════════════════════════════════════════
 def load_mondo_icd10cm_mappings() -> dict[str, list[dict]]:
-    """Load MONDO→ICD10CM SSSOM files from raw/phenotype/mondo_mappings/."""
+    """Load MONDO→ICD10CM SSSOM files from raw/trait/mondo_mappings/."""
     mondo_dir = RAW / "mondo_mappings"
     if not mondo_dir.exists():
         return {}
@@ -702,7 +702,7 @@ def phase4b_icd10cm_chaining(
     """Add ICD10CM mappings by chaining PORTAL→MONDO→ICD10CM."""
     mondo_to_icd = load_mondo_icd10cm_mappings()
     if not mondo_to_icd:
-        print("    No MONDO→ICD10CM mapping files found in raw/phenotype/mondo_mappings/")
+        print("    No MONDO→ICD10CM mapping files found in raw/trait/mondo_mappings/")
         return 0
 
     total_icd = sum(len(v) for v in mondo_to_icd.values())
@@ -983,7 +983,7 @@ async def main_async(skip_api: bool = False):
 
     # ── Load inputs ───────────────────────────────────────
     print("\nLoading inputs...")
-    consolidated_path = DATA / "01_consolidated_phenotypes.json"
+    consolidated_path = DATA / "01_consolidated_traits.json"
     if not consolidated_path.exists():
         print(f"ERROR: {consolidated_path} not found. Run Step 1 first.")
         sys.exit(1)

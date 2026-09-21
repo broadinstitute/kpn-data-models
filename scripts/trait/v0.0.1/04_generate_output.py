@@ -2,9 +2,9 @@
 """Step 4: Assign stable KPN.TRAIT IDs and generate versioned output files.
 
 Reads:
-  - data/phenotype/03_ols_enriched_mappings.json
+  - data/trait/03_ols_enriched_mappings.json
 
-Writes (into data/phenotype/v{VERSION}/):
+Writes (into versions/trait/v{VERSION}/):
   - kpn_trait_registry.tsv — the ID registry
   - kpn_trait_mappings.sssom.tsv — SSSOM mapping set
   - kpn_trait_collection.yaml — LinkML instance data
@@ -29,7 +29,7 @@ from pathlib import Path
 import yaml
 
 ROOT = Path(__file__).resolve().parent.parent.parent.parent
-DATA = ROOT / "data" / "phenotype"
+DATA = ROOT / "data" / "trait"
 TRAIT_BASE_URL = "https://broadinstitute.github.io/kpn-data-models/kpn.trait/"
 
 JUSTIFICATION_TO_SEMAPV = {
@@ -357,7 +357,7 @@ def main():
     args = parser.parse_args()
 
     version = args.version
-    VERSIONS = ROOT / "versions" / "phenotype"
+    VERSIONS = ROOT / "versions" / "trait"
     version_dir = args.output_dir or VERSIONS / f"v{version}"
     version_dir.mkdir(exist_ok=True, parents=True)
 
@@ -394,7 +394,7 @@ def main():
 
     print(f"\nOutput: {version_dir}/")
     print(f"\nTo validate:")
-    print(f"  linkml-validate -s schemas/phenotype/portal_phenotype.yaml {version_dir}/kpn_trait_collection.yaml")
+    print(f"  linkml-validate -s schemas/trait/kpn_trait.yaml {version_dir}/kpn_trait_collection.yaml")
 
 
 if __name__ == "__main__":

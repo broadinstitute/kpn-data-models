@@ -1,7 +1,7 @@
 [project]
 name = "portal-data-models"
 version = "0.1.0"
-description = "Unified data model for A2F Knowledge Portal phenotypes"
+description = "Unified data model for Knowledge Portal Network traits"
 requires-python = ">=3.9"
 dependencies = [
     "linkml>=1.7",

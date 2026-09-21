@@ -11,7 +11,7 @@ Uses rdflib to parse OWL/RDF and extract:
   - equivalentClass assertions
 
 Writes:
-  - data/02_ontology_xref_table.tsv
+  - data/trait/02_ontology_xref_table.tsv
 
 Dependencies: rdflib, pandas
 
@@ -29,8 +29,8 @@ from rdflib import Graph, Namespace, URIRef, Literal
 from rdflib.namespace import OWL, RDF, RDFS, SKOS
 
 ROOT = Path(__file__).resolve().parent.parent.parent.parent
-RAW = ROOT / "raw" / "phenotype"
-OUT = ROOT / "data" / "phenotype"
+RAW = ROOT / "raw" / "trait"
+OUT = ROOT / "data" / "trait"
 OUT.mkdir(exist_ok=True, parents=True)
 
 # Namespaces

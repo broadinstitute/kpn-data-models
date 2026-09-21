@@ -15,7 +15,8 @@ from pathlib import Path
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
-RELEASE = ROOT / 'versions/phenotype/v0.0.1'
+RELEASE = ROOT / 'versions/trait/v0.0.1'
+LATEST_RELEASE = ROOT / 'versions/trait/v0.0.2'
 
 
 def load_module(name, path):
@@ -25,7 +26,7 @@ def load_module(name, path):
     return module
 
 
-generator = load_module('generator', 'scripts/phenotype/v0.0.1/04_generate_output.py')
+generator = load_module('generator', 'scripts/trait/v0.0.1/04_generate_output.py')
 
 
 def normalized_content(path):
@@ -90,7 +91,7 @@ class ReleaseRegressionTests(unittest.TestCase):
     def test_schema_accepts_collection_and_rejects_old_prefix(self):
         from linkml.generators.jsonschemagen import JsonSchemaGenerator
         from jsonschema import Draft7Validator
-        schema = json.loads(JsonSchemaGenerator(str(ROOT / 'schemas/phenotype/portal_phenotype.yaml')).serialize())
+        schema = json.loads(JsonSchemaGenerator(str(ROOT / 'schemas/trait/kpn_trait.yaml')).serialize())
         validator = Draft7Validator(schema)
         validator.validate({'phenotypes': self.phenotypes})
         bad = copy.deepcopy(self.phenotypes[0])
@@ -106,7 +107,7 @@ class ReleaseRegressionTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             dest = Path(directory)
             subprocess.run([
-                sys.executable, str(ROOT / 'scripts/phenotype/v0.0.1/04_generate_output.py'),
+                sys.executable, str(ROOT / 'scripts/trait/v0.0.1/04_generate_output.py'),
                 '--from-release', str(RELEASE), '--output-dir', str(dest),
             ], check=True, capture_output=True, text=True)
             self.assertEqual({path.name for path in dest.iterdir()}, {
@@ -115,6 +116,29 @@ class ReleaseRegressionTests(unittest.TestCase):
             })
             for path in dest.iterdir():
                 self.assertEqual(path.read_bytes(), (RELEASE / path.name).read_bytes(), path.name)
+
+
+class TraitsReleaseTests(unittest.TestCase):
+    def test_v002_preserves_all_structured_data_from_v001(self):
+        for filename in ('kpn_trait_collection.yaml', 'kpn_trait_registry.tsv',
+                         'kpn_trait_flat.tsv', 'kpn_trait_mappings.sssom.tsv'):
+            with self.subTest(filename=filename):
+                expected = (RELEASE / filename).read_bytes()
+                if filename.endswith('.sssom.tsv'):
+                    expected = expected.replace(b'# mapping_set_version: v0.0.1 (', b'# mapping_set_version: v0.0.2 (', 1)
+                self.assertEqual((LATEST_RELEASE / filename).read_bytes(), expected)
+
+    def test_v002_coverage_changes_only_category_labels_and_version(self):
+        old = (RELEASE / 'kpn_trait_coverage.md').read_text()
+        expected = old.replace('v0.0.1', 'v0.0.2')
+        for original, current in [
+            ('# Portal Phenotype Mapping Coverage Report', '# KPN Trait Mapping Coverage Report'),
+            ('**Total phenotypes**', '**Total traits**'),
+            ('**Phenotypes with any mapping**', '**Traits with any mapping**'),
+            ('**Phenotypes with NO mapping**', '**Traits with NO mapping**'),
+        ]:
+            expected = expected.replace(original, current)
+        self.assertEqual((LATEST_RELEASE / 'kpn_trait_coverage.md').read_text(), expected)
 
 
 class StableIdTests(unittest.TestCase):
@@ -172,7 +196,7 @@ class StableIdTests(unittest.TestCase):
 
 class SourcePipelineTests(unittest.TestCase):
     def test_parsing_normalizes_only_the_core_source_category(self):
-        parser = load_module('source_parser', 'scripts/phenotype/v0.0.1/01_parse_sources.py')
+        parser = load_module('source_parser', 'scripts/trait/v0.0.1/01_parse_sources.py')
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / 'Phenotypes.tsv'
             path.write_text('trait_group\tphenotype\tphenotype_name\tdisplay_group\n'
@@ -187,7 +211,7 @@ class SourcePipelineTests(unittest.TestCase):
             self.assertEqual(records[0]['mappings'][0]['source'], 'portal_to_mesh_curated_collected.tsv')
 
     def test_broad_efo_enrichment_keeps_treating_kpn_as_core_traits(self):
-        enrichment = load_module('enrichment', 'scripts/phenotype/v0.0.1/03_enrich.py')
+        enrichment = load_module('enrichment', 'scripts/trait/v0.0.1/03_enrich.py')
         records = [{'gwas_source_category': source, 'phenotype_name': 'Example',
                     'legacy_trait_group': 'ANTHROPOMETRIC', 'mappings': []}
                    for source in ('portal', 'KPN', 'gcat_trait', 'rare_v2')]

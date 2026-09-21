@@ -2,14 +2,14 @@
 """Step 1: Parse and consolidate all source data files.
 
 Reads:
-  - raw/Phenotypes.tsv (master phenotype registry)
-  - raw/portal_to_mesh_curated_collected.tsv (curated MeSH mappings)
-  - raw/amp-traits-mapping-portal-phenotypes_06262024.csv (AMP EFO mappings)
-  - raw/gcat_v1.0.3.1.tsv (GWAS Catalog for gcat_trait EFO/MONDO mappings)
-  - raw/Phenotypes.tsv rare_v2 rows (embedded Orphanet IDs)
+  - raw/trait/Phenotypes.tsv (master phenotype registry)
+  - raw/trait/portal_to_mesh_curated_collected.tsv (curated MeSH mappings)
+  - raw/trait/amp-traits-mapping-portal-phenotypes_06262024.csv (AMP EFO mappings)
+  - raw/trait/gcat_v1.0.3.1.tsv (GWAS Catalog for gcat_trait EFO/MONDO mappings)
+  - raw/trait/Phenotypes.tsv rare_v2 rows (embedded Orphanet IDs)
 
 Writes:
-  - data/01_consolidated_phenotypes.json
+  - data/trait/01_consolidated_traits.json
 
 Dependencies: pandas
 """
@@ -24,8 +24,8 @@ from pathlib import Path
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parent.parent.parent.parent
-RAW = ROOT / "raw" / "phenotype"
-OUT = ROOT / "data" / "phenotype"
+RAW = ROOT / "raw" / "trait"
+OUT = ROOT / "data" / "trait"
 OUT.mkdir(exist_ok=True, parents=True)
 
 
@@ -852,7 +852,7 @@ def main():
             stats["with_any_mapping"] += 1
 
     # 3. Write output
-    output_path = OUT / "01_consolidated_phenotypes.json"
+    output_path = OUT / "01_consolidated_traits.json"
     with open(output_path, "w") as f:
         json.dump(consolidated, f, indent=2, ensure_ascii=False)
     print(f"\nWrote {len(consolidated)} records to {output_path}")

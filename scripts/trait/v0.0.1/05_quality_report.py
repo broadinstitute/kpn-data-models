@@ -6,11 +6,11 @@ Usage:
   python 05_quality_report.py --version 0.0.2
 
 Reads:
-  - data/phenotype/v{VERSION}/kpn_trait_registry.tsv
-  - data/phenotype/v{VERSION}/kpn_trait_mappings.sssom.tsv
+  - versions/trait/v{VERSION}/kpn_trait_registry.tsv
+  - versions/trait/v{VERSION}/kpn_trait_mappings.sssom.tsv
 
 Writes:
-  - data/phenotype/v{VERSION}/kpn_trait_coverage.md
+  - versions/trait/v{VERSION}/kpn_trait_coverage.md
 
 Dependencies: pandas
 """
@@ -22,7 +22,7 @@ from pathlib import Path
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parent.parent.parent.parent
-DATA = ROOT / "data" / "phenotype"
+DATA = ROOT / "data" / "trait"
 
 
 def main():
@@ -30,7 +30,7 @@ def main():
     parser.add_argument("--version", default="0.0.1")
     args = parser.parse_args()
 
-    VERSIONS = ROOT / "versions" / "phenotype"
+    VERSIONS = ROOT / "versions" / "trait"
     version_dir = VERSIONS / f"v{args.version}"
     registry_path = version_dir / "kpn_trait_registry.tsv"
     sssom_path = version_dir / "kpn_trait_mappings.sssom.tsv"
@@ -43,7 +43,7 @@ def main():
     print(f"Generating quality report for v{args.version}\n")
 
     registry = pd.read_csv(registry_path, sep="\t", dtype=str).fillna("")
-    print(f"  Registry: {len(registry)} phenotypes")
+    print(f"  Registry: {len(registry)} traits")
 
     sssom_lines = [line for line in open(sssom_path) if not line.startswith("#")]
     sssom = pd.read_csv(StringIO("".join(sssom_lines)), sep="\t", dtype=str).fillna("")
@@ -83,12 +83,12 @@ def main():
 
     # Build report
     lines = [
-        f"# Portal Phenotype Mapping Coverage Report — v{args.version}\n",
+        f"# KPN Trait Mapping Coverage Report — v{args.version}\n",
         "## Overall Summary\n",
-        f"- **Total phenotypes**: {len(registry)}",
+        f"- **Total traits**: {len(registry)}",
         f"- **Total mappings**: {len(sssom)}",
-        f"- **Phenotypes with any mapping**: {len(all_mapped)} ({len(all_mapped)/len(registry)*100:.1f}%)",
-        f"- **Phenotypes with NO mapping**: {len(unmapped_ids)} ({len(unmapped_ids)/len(registry)*100:.1f}%)\n",
+        f"- **Traits with any mapping**: {len(all_mapped)} ({len(all_mapped)/len(registry)*100:.1f}%)",
+        f"- **Traits with NO mapping**: {len(unmapped_ids)} ({len(unmapped_ids)/len(registry)*100:.1f}%)\n",
         "## Coverage by Ontology\n",
         "| Ontology | Mapped | % of Total |",
         "|----------|--------|------------|",

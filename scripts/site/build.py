@@ -54,12 +54,12 @@ def render_page(title, body, base_path, release, repository, script=''):
     release_url = f'https://github.com/{repository}/releases/tag/{quote(release, safe="")}'
     return f'''<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{esc(title)} | KPN data</title><meta name="description" content="Knowledge Portal Network phenotype identifiers, names, and ontology mappings.">
+<title>{esc(title)} | KPN data</title><meta name="description" content="Knowledge Portal Network trait identifiers, names, and ontology mappings.">
 <link rel="stylesheet" href="{esc(base)}/assets/style.css">
 {f'<script src="{esc(base)}/assets/{script}" defer></script>' if script else ''}</head>
 <body><a class="skip" href="#main">Skip to content</a>
 <header><nav aria-label="Main"><a class="brand" href="{esc(base)}/" aria-label="KPN home"><img src="{esc(base)}/assets/kpn-logo.png" alt="KPN" width="360" height="190"></a>
-<div class="nav-links"><a href="{esc(base)}/kpn.trait/">Phenotypes</a><a href="https://github.com/{esc(repository)}">Repository</a></div>
+<div class="nav-links"><a href="{esc(base)}/kpn.trait/">Traits</a><a href="https://github.com/{esc(repository)}">Repository</a></div>
 <a class="release" href="{esc(release_url)}">Release {esc(release)}</a></nav></header>
 <main id="main">{body}</main>
 <footer>Knowledge Portal Network <span>Data from <a href="{esc(release_url)}">{esc(release)}</a> · <a href="{esc(base)}/downloads/kpn_trait_coverage.md">Coverage report</a></span></footer>
@@ -95,13 +95,13 @@ def render_trait(record, flat, base):
 <td>{esc(mapping.get('mapping_justification') or 'Not provided')}<div class="provenance">{esc(mapping.get('source') or 'Source not provided')}</div>{notes}</td></tr>''')
     options = ''.join(f'<option>{esc(ontology)}</option>' for ontology in sorted({m['target_ontology'] for m in mappings}))
     description = f'<p class="description">{esc(record["description"])}</p>' if record.get('description') and record['description'] != record['phenotype_name'] else ''
-    return f'''<a class="back" href="{esc(base)}/kpn.trait/">All phenotypes</a>
+    return f'''<a class="back" href="{esc(base)}/kpn.trait/">All traits</a>
 <div class="trait-heading"><div><p class="identifier object-id">{esc(identifier)}</p><h1>{esc(record['phenotype_name'])}</h1>{description}</div>
 <a class="download" href="{esc(base)}/kpn.trait/{number}/record.json" download>Download record JSON</a></div>
-<div class="trait-layout"><aside aria-label="Phenotype details"><h2>Phenotype details</h2><dl>{metadata}</dl>{primary_html}</aside>
+<div class="trait-layout"><aside aria-label="Trait details"><h2>Trait details</h2><dl>{metadata}</dl>{primary_html}</aside>
 <section class="mapping-section"><div class="section-heading"><h2>Ontology mappings <span class="count">{len(mappings)}</span></h2>
 <label class="js-only">Ontology <select id="ontology"><option value="">All ontologies</option>{options}</select></label></div>
-<p class="hint">Relationships describe this phenotype relative to each mapped term.</p>
+<p class="hint">Relationships describe this trait relative to each mapped term.</p>
 <div class="table-scroll"><table class="mappings"><caption class="sr-only">All mappings for {esc(identifier)}</caption><thead><tr><th scope="col">Term</th><th scope="col">Relationship</th><th scope="col">Confidence</th><th scope="col">Evidence and source</th></tr></thead><tbody>{''.join(rows)}</tbody></table></div>
 <p id="mapping-status" class="hint" role="status">{len(mappings)} mappings</p>
 {'' if mappings else '<p>No ontology mappings in this release.</p>'}
@@ -137,7 +137,7 @@ def build_site(data_dir, output, release, repository, base_path=''):
         raise ValueError('Expected unique, nonzero KPN.TRAIT identifiers')
     from jsonschema import Draft7Validator
     from linkml.generators.jsonschemagen import JsonSchemaGenerator
-    schema = json.loads(JsonSchemaGenerator(str(ROOT / 'schemas/phenotype/portal_phenotype.yaml')).serialize())
+    schema = json.loads(JsonSchemaGenerator(str(ROOT / 'schemas/trait/kpn_trait.yaml')).serialize())
     Draft7Validator(schema).validate(collection)
     flat = {}
     with (data_dir / 'kpn_trait_flat.tsv').open(newline='') as f:
@@ -169,26 +169,26 @@ def build_site(data_dir, output, release, repository, base_path=''):
     options = ''.join(f'<option>{esc(group)}</option>' for group in sorted({r['trait_group'] for r in records}))
     total_mappings = sum(r['count'] for r in index)
     downloads_html = ''.join(f'<a href="{esc(base)}/downloads/{name}">{label}</a>' for name, label in zip(EXPORTS, ['YAML', 'Flat TSV', 'ID registry', 'SSSOM', 'Coverage report']))
-    body = f'''<div class="catalog-heading"><h1>Phenotypes</h1><p>Find a trait. Follow its connections.</p>
-<p class="hint">{len(records):,} phenotypes and {total_mappings:,} ontology mappings in {esc(release)}.</p></div>
-<section aria-label="Find phenotypes" id="catalog" data-index="{esc(base)}/kpn.trait/index.json" data-base="{esc(base)}">
+    body = f'''<div class="catalog-heading"><h1>Traits</h1><p>Find a trait. Follow its connections.</p>
+<p class="hint">{len(records):,} traits and {total_mappings:,} ontology mappings in {esc(release)}.</p></div>
+<section aria-label="Find traits" id="catalog" data-index="{esc(base)}/kpn.trait/index.json" data-base="{esc(base)}">
 <div class="filters js-only"><label class="search-label">Search names, IDs, or mapped terms<input type="search" id="search" placeholder="Try atrial fibrillation, KPN.TRAIT:0000001, or EFO:0000275" autocomplete="off"></label>
 <label>Trait group<select id="group"><option value="">All groups</option>{options}</select></label>
 <label>Source<select id="source"><option value="">All sources</option><option>KPN</option><option>gcat_trait</option><option>rare_v2</option></select></label></div>
-<p id="result-status" role="status" class="hint">Showing the first {min(50, len(records))} of {len(records):,} phenotypes.</p>
-<div class="table-scroll"><table class="results"><caption class="sr-only">Phenotype search results</caption><thead><tr><th scope="col">Phenotype</th><th scope="col">Trait group</th><th scope="col">Source</th><th scope="col">Mappings</th></tr></thead><tbody id="results">{''.join(result_row(r, base) for r in records[:50])}</tbody></table></div>
+<p id="result-status" role="status" class="hint">Showing the first {min(50, len(records))} of {len(records):,} traits.</p>
+<div class="table-scroll"><table class="results"><caption class="sr-only">Trait search results</caption><thead><tr><th scope="col">Trait</th><th scope="col">Trait group</th><th scope="col">Source</th><th scope="col">Mappings</th></tr></thead><tbody id="results">{''.join(result_row(r, base) for r in records[:50])}</tbody></table></div>
 <div class="pagination js-only"><button id="previous" disabled>Previous</button><span id="page-number"></span><button id="next" disabled>Next</button></div>
-<noscript><p>Enable JavaScript to search all phenotypes, or download the full registry below. Individual phenotype pages work without JavaScript.</p></noscript></section>
+<noscript><p>Enable JavaScript to search all traits, or download the full registry below. Individual trait pages work without JavaScript.</p></noscript></section>
 <section class="downloads"><h2>Release downloads</h2><p>Complete data files for {esc(release)}.</p><div>{downloads_html}</div></section>'''
-    catalogue = render_page('Phenotypes', body, base, release, repository, 'catalog.js')
+    catalogue = render_page('Traits', body, base, release, repository, 'catalog.js')
     write(output / 'index.html', catalogue)
     write(output / 'kpn.trait' / 'index.html', catalogue)
-    write(output / 'kpn.trait' / 'mappings' / 'index.html', render_page('Mapping set', f'<h1>Phenotype mapping set</h1><p>{total_mappings:,} mappings from {esc(release)}.</p><div class="downloads">{downloads_html}</div>', base, release, repository))
+    write(output / 'kpn.trait' / 'mappings' / 'index.html', render_page('Mapping set', f'<h1>Trait mapping set</h1><p>{total_mappings:,} mappings from {esc(release)}.</p><div class="downloads">{downloads_html}</div>', base, release, repository))
     write(output / 'kpn.trait' / 'index.json', json.dumps(index, ensure_ascii=False, separators=(',', ':')))
     write(output / 'release.json', json.dumps({'release': release, 'repository': repository, 'phenotypes': len(records), 'mappings': total_mappings}, indent=2) + '\n')
-    write(output / '404.html', render_page('Page not found', f'<h1>Page not found</h1><p>This identifier is not in {esc(release)}. Check the seven-digit ID or <a href="{esc(base)}/">search the phenotype registry</a>.</p>', base, release, repository))
+    write(output / '404.html', render_page('Page not found', f'<h1>Page not found</h1><p>This identifier is not in {esc(release)}. Check the seven-digit ID or <a href="{esc(base)}/">search the trait registry</a>.</p>', base, release, repository))
     write(output / '.nojekyll', '')
-    print(f'Built {len(records):,} phenotype pages with {total_mappings:,} mappings in {output}')
+    print(f'Built {len(records):,} trait pages with {total_mappings:,} mappings in {output}')
 
 
 def main():

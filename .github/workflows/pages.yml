@@ -52,7 +52,7 @@ jobs:
           BASE_PATH: ${{ steps.pages.outputs.base_path }}
         run: >-
           uv run python scripts/site/build.py
-          --data-dir "../released-data/versions/phenotype/$RELEASE"
+          --data-dir "../released-data/versions/trait/$RELEASE"
           --release "$RELEASE"
           --repository "$REPOSITORY"
           --base-path "$BASE_PATH"

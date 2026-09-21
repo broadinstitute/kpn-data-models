@@ -44,8 +44,8 @@ function render() {
   }
   results.replaceChildren(fragment);
   statusText.textContent = found.length
-    ? `${found.length.toLocaleString()} ${found.length === 1 ? 'phenotype' : 'phenotypes'}. Showing ${page * pageSize + 1}–${Math.min((page + 1) * pageSize, found.length)}.`
-    : 'No phenotypes match. Try another name, ID, or mapped term, or clear the filters.';
+    ? `${found.length.toLocaleString()} ${found.length === 1 ? 'trait' : 'traits'}. Showing ${page * pageSize + 1}–${Math.min((page + 1) * pageSize, found.length)}.`
+    : 'No traits match. Try another name, ID, or mapped term, or clear the filters.';
   pageNumber.textContent = `Page ${page + 1} of ${pages}`;
   previous.disabled = page === 0;
   next.disabled = page + 1 >= pages;

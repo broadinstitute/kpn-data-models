@@ -1,8 +1,8 @@
 id: https://kp.a2f.org/portal-phenotype-model
 name: portal-phenotype-model
-title: A2F Knowledge Portal Phenotype Data Model
+title: KPN Trait Data Model
 description: >-
-  Unified data model for phenotypes tracked in the A2F Knowledge Portal,
+  Unified data model for traits tracked in the Knowledge Portal Network,
   with stable numeric IDs, legacy identifiers, trait type classification,
   and cross-ontology mappings following SSSOM conventions.
 version: "0.1.0"

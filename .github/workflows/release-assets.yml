@@ -1,4 +1,4 @@
-name: Attach phenotype release files
+name: Attach trait release files
 on:
   release:
     types: [published]
@@ -22,7 +22,7 @@ jobs:
             echo "Expected a stable version tag" >&2
             exit 1
           fi
-          dir="versions/phenotype/$RELEASE"
+          dir="versions/trait/$RELEASE"
           gh release upload "$RELEASE" --repo "$REPOSITORY" \
             "$dir/kpn_trait_collection.yaml" \
             "$dir/kpn_trait_flat.tsv" \
