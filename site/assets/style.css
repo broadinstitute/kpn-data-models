@@ -4,10 +4,12 @@ body { margin: 0; color: var(--ink); background: var(--paper); }
 a { color: var(--teal); text-underline-offset: 3px; }
 a:hover { color: var(--navy); }
 :focus-visible { outline: 3px solid #008caa; outline-offset: 4px; }
-header { background: var(--navy); color: white; }
+/* Match the logo's embedded Display P3 blue, with an sRGB fallback. */
+header { background: #2ec3ff; background: color(display-p3 .380392 .752941 .980392); color: var(--ink); }
 nav { display: flex; align-items: center; gap: 2rem; max-width: 1480px; margin: auto; padding: 1.1rem 3rem; }
-nav a { color: white; text-decoration: none; }
-nav a:hover { color: #b7eef2; }
+nav a { color: var(--ink); text-decoration: none; }
+nav a:hover { color: var(--navy); text-decoration: underline; }
+nav a:focus-visible { outline-color: var(--navy); }
 .brand { display: inline-flex; align-items: center; gap: .75rem; font-size: 1.6rem; margin-right: 2rem; }
 .brand img { display: block; width: 88px; height: auto; }
 .brand span { font-weight: 400; }
