@@ -112,7 +112,7 @@ The base version pipeline (`scripts/phenotype/v0.0.1/generate.sh`) has 5 steps:
    - Phase 6: Validation fixes (downgrade bad predicates, cap confidence)
    - Phase 7: Cleanup (remove invalid mappings)
 
-4. **04_generate_output.py** — Assigns `PORTAL:NNNNNNN` IDs (sorted by trait_group → display_group → name). Writes versioned SSSOM, YAML, and registry TSV.
+4. **04_generate_output.py** — Assigns `KPN.TRAIT:NNNNNNN` IDs by reusing the versioned registry; new traits receive IDs above the current maximum. Writes versioned SSSOM, YAML, and registry TSV.
 
 5. **05_quality_report.py** — Generates `mapping_coverage.md` with coverage stats, quality target checks, and predicate distribution.
 

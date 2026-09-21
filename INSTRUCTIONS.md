@@ -4,7 +4,7 @@
 
 Build a unified, standards-compliant data model for all phenotypes used across the A2F Knowledge Portal and related Flannick Lab resources. The goal is to:
 
-1. Assign every phenotype a new **stable numeric Portal Phenotype ID** (e.g., `PORTAL:0000001`)
+1. Assign every phenotype a new **stable numeric Portal Phenotype ID** (e.g., `KPN.TRAIT:0000001`)
 2. Preserve the **legacy text-based ID** (e.g., `AF`, `gcat_trait_Moyamoya_disease`, `HermanskyPudlak_syndrome_Orphanet_79430`)
 3. Map each phenotype to as many external ontology IDs as possible (EFO, MeSH, MONDO, HP, DOID, Orphanet, CHEBI, OBA, CMO)
 4. Classify each mapping relationship using SKOS predicates (`skos:exactMatch`, `skos:broadMatch`, `skos:narrowMatch`, `skos:relatedMatch`, `skos:closeMatch`)
@@ -154,8 +154,8 @@ For **composite phenotypes** (interaction/stratified/adjusted), decompose them:
 
 After mappings are complete, assign new numeric IDs:
 
-- Format: `PORTAL:{NNNNNNN}` (7-digit zero-padded, e.g., `PORTAL:0000001`)
-- Assignment order: Sort by `trait_group` (portal first, then gcat_trait, then rare_v2), then by `display_group`, then alphabetically by `phenotype`
+- Format: `KPN.TRAIT:{NNNNNNN}` (7-digit zero-padded, e.g., `KPN.TRAIT:0000001`)
+- Reuse the numeric IDs in the existing versioned registry, keyed by source category and legacy phenotype ID. Append new IDs above the existing maximum; never renumber existing records. For a first-ever registry only, sort by `trait_group` (portal first, then gcat_trait, then rare_v2), then by `display_group`, then alphabetically by `phenotype`
 - Keep a registry mapping file (`data/portal_id_registry.tsv`) with columns:
   ```
   portal_id | legacy_trait_group | legacy_phenotype_id | phenotype_name | display_group | trait_type
@@ -173,7 +173,7 @@ Define a LinkML schema with these classes:
 id: https://kp.a2f.org/portal-phenotype-model
 name: portal-phenotype-model
 prefixes:
-  portal: https://kp.a2f.org/phenotype/
+  KPN.TRAIT: https://broadinstitute.github.io/kpn-data-models/kpn.trait/
   linkml: https://w3id.org/linkml/
   skos: http://www.w3.org/2004/02/skos/core#
   sssom: https://w3id.org/sssom/
@@ -197,7 +197,7 @@ classes:
         range: string
         required: true
         identifier: true
-        description: "Stable numeric ID (e.g., PORTAL:0000001)"
+        description: "Stable numeric ID (e.g., KPN.TRAIT:0000001)"
       legacy_id:
         range: string
         required: true
@@ -319,17 +319,17 @@ In addition to the LinkML instances, produce a standard SSSOM TSV:
 
 ```
 # curie_map:
-#   PORTAL: https://kp.a2f.org/phenotype/
+#   KPN.TRAIT: https://broadinstitute.github.io/kpn-data-models/kpn.trait/
 #   EFO: http://www.ebi.ac.uk/efo/EFO_
 #   MESH: http://id.nlm.nih.gov/mesh/
 #   MONDO: http://purl.obolibrary.org/obo/MONDO_
 #   HP: http://purl.obolibrary.org/obo/HP_
-# mapping_set_id: https://kp.a2f.org/phenotype/mappings
+# mapping_set_id: https://broadinstitute.github.io/kpn-data-models/kpn.trait/mappings
 # mapping_set_version: 2026-03-13
 subject_id	subject_label	predicate_id	object_id	object_label	mapping_justification	confidence
-PORTAL:0000001	Atrial Fibrillation	skos:exactMatch	EFO:0000275	atrial fibrillation	semapv:ManualMappingCuration	1.0
-PORTAL:0000001	Atrial Fibrillation	skos:exactMatch	MESH:D001281	Atrial Fibrillation	semapv:ManualMappingCuration	1.0
-PORTAL:0000001	Atrial Fibrillation	skos:exactMatch	MONDO:0004981	atrial fibrillation	semapv:LogicalReasoning	0.95
+KPN.TRAIT:0000001	Atrial Fibrillation	skos:exactMatch	EFO:0000275	atrial fibrillation	semapv:ManualMappingCuration	1.0
+KPN.TRAIT:0000001	Atrial Fibrillation	skos:exactMatch	MESH:D001281	Atrial Fibrillation	semapv:ManualMappingCuration	1.0
+KPN.TRAIT:0000001	Atrial Fibrillation	skos:exactMatch	MONDO:0004981	atrial fibrillation	semapv:LogicalReasoning	0.95
 ```
 
 ---
@@ -398,7 +398,7 @@ PORTAL:0000001	Atrial Fibrillation	skos:exactMatch	MONDO:0004981	atrial fibrilla
 
 ### Step 5: Assign Stable IDs and Generate Final Output
 - Script: `scripts/05_generate_output.py`
-- Assign `PORTAL:NNNNNNN` IDs
+- Assign `KPN.TRAIT:NNNNNNN` IDs
 - Generate:
   - `schema/portal_phenotype.yaml` — the LinkML schema (use the template above)
   - `data/portal_phenotype_registry.tsv` — the ID registry
@@ -493,7 +493,7 @@ mcp__ontology-lookup-service__getDescendants(ontologyId="efo", classIri="http://
 
 ## Quality Standards
 
-- Every phenotype in `Phenotypes.tsv` MUST have a `PORTAL:NNNNNNN` ID and a `trait_type` classification
+- Every phenotype in `Phenotypes.tsv` MUST have a `KPN.TRAIT:NNNNNNN` ID and a `trait_type` classification
 - Target: >90% of `portal` phenotypes mapped to at least one of {EFO, MONDO, MeSH}
 - Target: >95% of `rare_v2` phenotypes mapped to Orphanet (they already have IDs embedded)
 - Target: >80% of `gcat_trait` phenotypes mapped to EFO (via GWAS Catalog)

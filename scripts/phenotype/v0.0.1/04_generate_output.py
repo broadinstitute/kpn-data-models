@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Step 4: Assign stable PORTAL IDs and generate versioned output files.
+"""Step 4: Assign stable KPN.TRAIT IDs and generate versioned output files.
 
 Reads:
   - data/phenotype/03_ols_enriched_mappings.json
@@ -21,6 +21,7 @@ Dependencies: pyyaml
 import argparse
 import csv
 import json
+import re
 import sys
 from datetime import date
 from pathlib import Path
@@ -29,6 +30,7 @@ import yaml
 
 ROOT = Path(__file__).resolve().parent.parent.parent.parent
 DATA = ROOT / "data" / "phenotype"
+TRAIT_BASE_URL = "https://broadinstitute.github.io/kpn-data-models/kpn.trait/"
 
 JUSTIFICATION_TO_SEMAPV = {
     "manual_curation": "semapv:ManualMappingCuration",
@@ -42,7 +44,7 @@ JUSTIFICATION_TO_SEMAPV = {
 
 def load_input(input_path: Path | None = None) -> list[dict]:
     """Load enriched data."""
-    if input_path and input_path.exists():
+    if input_path:
         print(f"  Loading from {input_path}")
         with open(input_path) as f:
             return json.load(f)
@@ -57,7 +59,57 @@ def load_input(input_path: Path | None = None) -> list[dict]:
     sys.exit(1)
 
 
-def assign_portal_ids(records: list[dict]) -> list[dict]:
+def load_release(release_dir: Path) -> list[dict]:
+    """Rebuild without re-querying ontologies; retain YAML mapping provenance.
+
+    The flat export carries the original dichotomous/complex flags, which are
+    not both represented in the LinkML collection.
+    """
+    with (release_dir / "portal_phenotypes.yaml").open() as f:
+        phenotypes = yaml.safe_load(f)["phenotypes"]
+    with (release_dir / "portal_phenotypes_flat.tsv").open(newline="") as f:
+        flags = {}
+        for row in csv.DictReader(f, delimiter="\t"):
+            flags.setdefault(row["portal_id"], row)
+    records = []
+    for phenotype in phenotypes:
+        row = flags[phenotype["portal_id"]]
+        records.append({
+            **phenotype,
+            "phenotype": phenotype["legacy_id"],
+            "amp_description": phenotype.get("description", ""),
+            "amp_dichotomous": row["is_dichotomous"],
+            "amp_complex": {"true": "complex", "false": "simple"}.get(row["is_complex"], ""),
+        })
+    return records
+
+
+def assign_portal_ids(records: list[dict], registry_path: Path | None = None) -> list[dict]:
+    """Reuse assigned numbers, allocating new IDs above the registry maximum.
+
+    Names and classifications may change without changing identity. Missing
+    registry records fail closed so rebuilding cannot silently drop traits.
+    """
+    assigned = {}
+    used = set()
+    if registry_path is not None:
+        with registry_path.open(newline="") as f:
+            for row in csv.DictReader(f, delimiter="\t"):
+                key = (row["gwas_source_category"], row["legacy_phenotype_id"])
+                match = re.fullmatch(r"(?:PORTAL|KPN\.TRAIT):([0-9]{7})", row["portal_id"])
+                if not match or int(match[1]) == 0:
+                    raise ValueError(f"Invalid registry ID: {row['portal_id']}")
+                number = int(match[1])
+                if key in assigned or number in used:
+                    raise ValueError(f"Duplicate registry identity or ID: {key}")
+                assigned[key] = number
+                used.add(number)
+    keys = [(r["gwas_source_category"], r["phenotype"]) for r in records]
+    if len(keys) != len(set(keys)):
+        raise ValueError("Duplicate phenotype identity in input")
+    missing = assigned.keys() - set(keys)
+    if missing:
+        raise ValueError(f"Input drops {len(missing)} registered phenotypes: {sorted(missing)[:3]}")
     group_order = {"portal": 0, "gcat_trait": 1, "rare_v2": 2}
     records.sort(
         key=lambda r: (
@@ -66,8 +118,16 @@ def assign_portal_ids(records: list[dict]) -> list[dict]:
             r.get("phenotype", ""),
         )
     )
-    for i, record in enumerate(records, start=1):
-        record["portal_id"] = f"PORTAL:{i:07d}"
+    next_id = max(used, default=0) + 1
+    for record in records:
+        key = (record["gwas_source_category"], record["phenotype"])
+        if key not in assigned:
+            if next_id > 9999999:
+                raise ValueError("KPN.TRAIT ID space exhausted")
+            assigned[key] = next_id
+            next_id += 1
+        record["portal_id"] = f"KPN.TRAIT:{assigned[key]:07d}"
+    records.sort(key=lambda r: r["portal_id"])
     return records
 
 
@@ -116,11 +176,11 @@ def generate_registry(records: list[dict], output_path: Path):
     print(f"  Wrote registry: {output_path} ({len(records)} entries)")
 
 
-def generate_sssom(records: list[dict], output_path: Path, version: str):
-    today = date.today().isoformat()
+def generate_sssom(records: list[dict], output_path: Path, version: str, mapping_date: str | None = None):
+    today = mapping_date or date.today().isoformat()
     header_lines = [
         "# curie_map:",
-        "#   PORTAL: https://kp.a2f.org/phenotype/",
+        f"#   KPN.TRAIT: {TRAIT_BASE_URL}",
         "#   EFO: http://www.ebi.ac.uk/efo/EFO_",
         "#   MESH: http://id.nlm.nih.gov/mesh/",
         "#   MONDO: http://purl.obolibrary.org/obo/MONDO_",
@@ -131,7 +191,14 @@ def generate_sssom(records: list[dict], output_path: Path, version: str):
         "#   OBA: http://purl.obolibrary.org/obo/OBA_",
         "#   CMO: http://purl.obolibrary.org/obo/CMO_",
         "#   ICD10CM: http://purl.bioontology.org/ontology/ICD10CM/",
-        "# mapping_set_id: https://kp.a2f.org/phenotype/mappings",
+        "#   OMIM: https://omim.org/entry/",
+        "#   GO: http://purl.obolibrary.org/obo/GO_",
+        "#   NCIT: http://purl.obolibrary.org/obo/NCIT_",
+        "#   PATO: http://purl.obolibrary.org/obo/PATO_",
+        "#   skos: http://www.w3.org/2004/02/skos/core#",
+        "#   semapv: https://w3id.org/semapv/vocab/",
+        "#   oboInOwl: http://www.geneontology.org/formats/oboInOwl#",
+        f"# mapping_set_id: {TRAIT_BASE_URL}mappings",
         f"# mapping_set_version: v{version} ({today})",
     ]
     fieldnames = [
@@ -275,27 +342,47 @@ def generate_flattened_tsv(records: list[dict], output_path: Path):
 def main():
     parser = argparse.ArgumentParser(description="Generate versioned portal phenotype output")
     parser.add_argument("--version", default="0.0.1", help="Version string (default: 0.0.1)")
-    parser.add_argument("--input", default=None, help="Input JSON path (default: 03_ols_enriched_mappings.json)")
+    inputs = parser.add_mutually_exclusive_group()
+    inputs.add_argument("--input", type=Path, help="Enriched input JSON")
+    inputs.add_argument("--from-release", type=Path, help="Rebuild an existing release offline (YAML + flat TSV)")
+    parser.add_argument("--registry", type=Path, help="Existing registry to preserve (defaults to output registry, then v0.0.1)")
+    parser.add_argument("--output-dir", type=Path, help="Optional output directory")
+    parser.add_argument("--mapping-date", help="SSSOM date, YYYY-MM-DD; defaults to source release date on rebuild")
     args = parser.parse_args()
 
     version = args.version
     VERSIONS = ROOT / "versions" / "phenotype"
-    version_dir = VERSIONS / f"v{version}"
+    version_dir = args.output_dir or VERSIONS / f"v{version}"
     version_dir.mkdir(exist_ok=True, parents=True)
 
     print(f"Generating v{version} output\n")
 
-    input_path = Path(args.input) if args.input else None
-    records = load_input(input_path)
+    records = load_release(args.from_release) if args.from_release else load_input(args.input)
     print(f"  {len(records)} phenotype records\n")
 
-    print("Assigning PORTAL IDs...")
-    records = assign_portal_ids(records)
+    registry = args.registry
+    if registry is None:
+        candidates = [
+            (args.from_release or version_dir) / "portal_phenotype_registry.tsv",
+            VERSIONS / "v0.0.1" / "portal_phenotype_registry.tsv",
+        ]
+        registry = next((path for path in candidates if path.exists()), None)
+    mapping_date = args.mapping_date
+    if args.from_release and mapping_date is None:
+        metadata = (args.from_release / "portal_phenotype_mappings.sssom.tsv").read_text()
+        match = re.search(r"^# mapping_set_version: .*\((\d{4}-\d{2}-\d{2})\)$", metadata, re.M)
+        if not match:
+            raise ValueError("Source release has no mapping date; pass --mapping-date")
+        mapping_date = match[1]
+    if mapping_date:
+        date.fromisoformat(mapping_date)
+    print("Assigning KPN.TRAIT IDs...")
+    records = assign_portal_ids(records, registry)
     print(f"  {records[0]['portal_id']} to {records[-1]['portal_id']}\n")
 
     print("Generating output files...")
     generate_registry(records, version_dir / "portal_phenotype_registry.tsv")
-    generate_sssom(records, version_dir / "portal_phenotype_mappings.sssom.tsv", version)
+    generate_sssom(records, version_dir / "portal_phenotype_mappings.sssom.tsv", version, mapping_date)
     generate_linkml_instances(records, version_dir / "portal_phenotypes.yaml")
     generate_flattened_tsv(records, version_dir / "portal_phenotypes_flat.tsv")
 

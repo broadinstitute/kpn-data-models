@@ -1,0 +1,27 @@
+name: Validate data and site
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        # Release validation uses checked-in exports; no LFS ontology download.
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --frozen
+      - run: uv run python -m unittest discover -s tests -v
+      - name: Build all phenotype pages
+        run: >-
+          uv run python scripts/site/build.py
+          --data-dir versions/phenotype/v0.0.1
+          --release v0.0.1
+          --base-path /kpn-data-models
+      - uses: actions/upload-artifact@v4
+        with:
+          name: site-preview
+          path: site/_build

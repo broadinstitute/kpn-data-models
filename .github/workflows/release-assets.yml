@@ -1,0 +1,31 @@
+name: Attach phenotype release files
+on:
+  release:
+    types: [published]
+permissions:
+  contents: write
+jobs:
+  assets:
+    if: ${{ !github.event.release.prerelease }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+      - name: Attach the versioned exports without overwriting existing assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE: ${{ github.event.release.tag_name }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          if [[ ! "$RELEASE" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Expected a stable version tag" >&2
+            exit 1
+          fi
+          dir="versions/phenotype/$RELEASE"
+          gh release upload "$RELEASE" --repo "$REPOSITORY" \
+            "$dir/portal_phenotypes.yaml" \
+            "$dir/portal_phenotypes_flat.tsv" \
+            "$dir/portal_phenotype_registry.tsv" \
+            "$dir/portal_phenotype_mappings.sssom.tsv" \
+            "$dir/mapping_coverage.md"

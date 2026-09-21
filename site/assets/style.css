@@ -1,0 +1,73 @@
+:root { color-scheme: light; --paper: #f7fafc; --ink: #213c4b; --muted: #526978; --line: #d8e3ea; --teal: #076c71; --navy: #17465b; --wash: #e8f3f4; font-family: 'Avenir Next', Avenir, 'Segoe UI', sans-serif; font-size: 16px; line-height: 1.55; }
+* { box-sizing: border-box; }
+body { margin: 0; color: var(--ink); background: var(--paper); }
+a { color: var(--teal); text-underline-offset: 3px; }
+a:hover { color: var(--navy); }
+:focus-visible { outline: 3px solid #008caa; outline-offset: 4px; }
+header { background: var(--navy); color: white; }
+nav { display: flex; align-items: center; gap: 2rem; max-width: 1480px; margin: auto; padding: 1.1rem 3rem; }
+nav a { color: white; text-decoration: none; }
+nav a:hover { color: #b7eef2; }
+.brand { font-size: 1.6rem; font-weight: 750; margin-right: 2rem; }
+.brand span { font-weight: 400; }
+.release { margin-left: auto; padding: .3rem .8rem; background: #ffffff15; border-radius: 4px; font-size: .85rem; }
+main { max-width: 1480px; margin: auto; padding: 2.4rem 3rem 4rem; min-height: 76vh; }
+h1 { font-size: clamp(2rem, 3.5vw, 3rem); line-height: 1.18; font-weight: 650; letter-spacing: -.035em; margin: .6rem 0 1.2rem; max-width: 30ch; overflow-wrap: anywhere; }
+h2 { font-size: 1.1rem; line-height: 1.4; margin: 0 0 1rem; font-weight: 650; }
+p { max-width: 78ch; }
+.catalog-heading { padding: .3rem 0 1.5rem; }
+.catalog-heading h1 { margin-bottom: .6rem; }
+.catalog-heading p { margin: .35rem 0; }
+.hint, .provenance, footer { color: var(--muted); font-size: .87rem; }
+.filters { display: flex; gap: 1rem; align-items: flex-end; background: var(--wash); padding: 1.25rem; border-radius: 6px; margin: .5rem 0 1.5rem; }
+label { display: flex; flex-direction: column; gap: .4rem; font-size: .8rem; font-weight: 600; }
+.search-label { flex: 1; }
+input, select, button { font: inherit; color: inherit; border: 1px solid #9db7c4; border-radius: 4px; background: white; padding: .65rem .8rem; min-height: 44px; }
+input { width: 100%; font-size: .95rem; }
+select { min-width: 150px; font-size: .9rem; }
+button { cursor: pointer; min-width: 100px; }
+button:disabled { cursor: default; opacity: .45; }
+.table-scroll { overflow-x: auto; background: white; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; text-align: left; font-size: .9rem; }
+th { background: #edf3f6; font-weight: 600; color: var(--muted); font-size: .78rem; padding: .9rem 1.15rem; white-space: nowrap; }
+td { vertical-align: top; padding: 1.1rem 1.15rem; border-top: 1px solid var(--line); }
+.results tbody tr:hover { background: #f4fafb; }
+.results td:first-child { width: 60%; }
+.results td:first-child > a { font-size: 1rem; font-weight: 550; text-decoration: none; }
+.results td:first-child > a:hover { text-decoration: underline; }
+.identifier { font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace; font-size: .8rem; overflow-wrap: anywhere; }
+.results .identifier { margin-top: .2rem; color: var(--muted); }
+.object-id { font-size: 1rem; color: var(--teal); margin: 1.5rem 0 .5rem; }
+.back { font-size: .85rem; }
+.trait-heading { display: flex; justify-content: space-between; align-items: center; gap: 2rem; padding-bottom: 1.6rem; }
+.download { display: inline-block; white-space: nowrap; padding: .6rem .9rem; border: 1px solid #a8c7cb; border-radius: 4px; text-decoration: none; font-size: .83rem; }
+.trait-layout { display: grid; grid-template-columns: 270px minmax(0, 1fr); gap: 2.5rem; border-top: 1px solid var(--line); padding-top: 2rem; }
+aside { min-width: 0; padding-right: 1.5rem; border-right: 1px solid var(--line); }
+dl { margin: 0; }
+dt { color: var(--muted); font-size: .75rem; margin-top: 1.1rem; }
+dd { margin: .25rem 0 0; font-size: .9rem; overflow-wrap: anywhere; }
+.primary { margin-top: 2rem; padding: 1rem; background: var(--wash); border-left: 3px solid var(--teal); border-radius: 0 4px 4px 0; }
+.primary p { font-size: .9rem; margin: .5rem 0; }
+.primary span { color: var(--muted); font-size: .75rem; overflow-wrap: anywhere; }
+.section-heading { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.section-heading h2 { margin: 0; }
+.count { background: var(--wash); color: var(--teal); padding: .2rem .55rem; border-radius: 4px; margin-left: .4rem; font-size: .85rem; }
+.mappings { min-width: 670px; }
+.mappings td:first-child { width: 29%; }
+.term-label { margin-top: .4rem; }
+.predicate { white-space: nowrap; font-size: .8rem; }
+.confidence { font-variant-numeric: tabular-nums; }
+.provenance { font-size: .77rem; margin-top: .4rem; overflow-wrap: anywhere; }
+.notes { font-size: .8rem; }
+.pagination { display: flex; align-items: center; justify-content: flex-end; gap: 1rem; margin-top: 1.2rem; font-size: .85rem; }
+.downloads { margin-top: 3rem; }
+.downloads h2 { margin-bottom: .25rem; }
+.downloads p { color: var(--muted); font-size: .9rem; }
+.downloads div { display: flex; flex-wrap: wrap; gap: 1.5rem; font-size: .9rem; }
+footer { max-width: 1480px; margin: auto; padding: 1.4rem 3rem; border-top: 1px solid var(--line); display: flex; justify-content: space-between; gap: 1rem; }
+.js-only { display: none; }
+.js-ready .filters, .js-ready .pagination, .js-ready label.js-only { display: flex; }
+.sr-only, .skip:not(:focus) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.skip:focus { display: block; padding: 1rem; }
+@media (max-width: 900px) { main { padding: 2rem 1.25rem; } nav { padding: 1rem 1.25rem; gap: 1rem; } .brand { margin-right: 0; } .trait-layout { grid-template-columns: minmax(0, 1fr); } aside { border-right: 0; padding-right: 0; } dl { display: grid; grid-template-columns: minmax(100px, 1fr) 2fr; gap: .8rem; } dt, dd { margin: 0; } .trait-heading { display: block; } .filters { flex-wrap: wrap; } .search-label { flex-basis: 100%; } footer { padding: 1.25rem; } }
+@media (max-width: 540px) { nav { flex-wrap: wrap; font-size: .8rem; gap: .8rem; } .brand { flex-basis: 100%; font-size: 1.4rem; } .release { margin-left: 0; } .filters label { width: 100%; } .section-heading { align-items: flex-start; flex-direction: column; } .results { min-width: 590px; } footer { flex-direction: column; } }

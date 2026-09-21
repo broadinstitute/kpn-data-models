@@ -8,7 +8,7 @@ description: >-
 version: "0.1.0"
 
 prefixes:
-  portal: https://kp.a2f.org/phenotype/
+  KPN.TRAIT: https://broadinstitute.github.io/kpn-data-models/kpn.trait/
   linkml: https://w3id.org/linkml/
   skos: http://www.w3.org/2004/02/skos/core#
   sssom: https://w3id.org/sssom/
@@ -23,6 +23,11 @@ prefixes:
   oba: http://purl.obolibrary.org/obo/OBA_
   cmo: http://purl.obolibrary.org/obo/CMO_
   icd10cm: http://purl.bioontology.org/ontology/ICD10CM/
+  OMIM: https://omim.org/entry/
+  GO: http://purl.obolibrary.org/obo/GO_
+  NCIT: http://purl.obolibrary.org/obo/NCIT_
+  PATO: http://purl.obolibrary.org/obo/PATO_
+  oboInOwl: http://www.geneontology.org/formats/oboInOwl#
 
 default_range: string
 
@@ -48,12 +53,15 @@ classes:
         range: string
         required: true
         identifier: true
-        description: "Stable numeric ID (e.g., PORTAL:0000001)"
-        pattern: "^PORTAL:\\d{7}$"
+        description: "Stable numeric ID (e.g., KPN.TRAIT:0000001)"
+        pattern: "^KPN\\.TRAIT:\\d{7}$"
       legacy_id:
         range: string
         required: true
         description: "Original text-based phenotype ID from Phenotypes.tsv"
+      pigean_id:
+        range: string
+        description: "Original identifier from PIGEAN analysis runs, when available"
       gwas_source_category:
         range: GwasSourceCategoryEnum
         required: true
@@ -81,7 +89,7 @@ classes:
       component_phenotypes:
         range: string
         multivalued: true
-        description: "For composite/interaction phenotypes, PORTAL IDs of the component phenotypes"
+        description: "For composite/interaction phenotypes, KPN.TRAIT IDs of the component phenotypes"
       primary_mapping:
         range: OntologyMapping
         inlined: true
@@ -246,9 +254,19 @@ enums:
         description: "Clinical Measurement Ontology"
       ICD10CM:
         description: "ICD-10 Clinical Modification"
+      OMIM:
+        description: "Online Mendelian Inheritance in Man"
+      GO:
+        description: "Gene Ontology"
+      NCIT:
+        description: "NCI Thesaurus"
+      PATO:
+        description: "Phenotype And Trait Ontology"
 
   MappingPredicateEnum:
     permissible_values:
+      "oboInOwl:hasDbXref":
+        description: "Database cross-reference without an assertion of semantic equivalence"
       "skos:exactMatch":
         description: "Exact semantic equivalence"
       "skos:closeMatch":

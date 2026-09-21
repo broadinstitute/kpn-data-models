@@ -1,0 +1,12 @@
+{
+  "source_commit": "dcdb13b9ed8e39007678d8b488dc3a7197f2096b",
+  "phenotypes": 8402,
+  "mappings": 24050,
+  "sha256": {
+    "portal_phenotype_registry.tsv": "4ac31b271c74b44afd9c240a09b9419d67ed7195b1925c88832a17c99c486634",
+    "portal_phenotypes.yaml": "d540b3d62a930e105e8cf6b6f4bd8067302730d3162f5a806329fd3b62fa0288",
+    "portal_phenotypes_flat.tsv": "e2631b15b8758041ae8c24b650074ef7b5c0e9e23ff29fa30eebc5b24cf8ef57",
+    "portal_phenotype_mappings.sssom.tsv": "ba25dbfd759a09fb3ca790d08f58d4fe18cae3474ccef67450ac2538987bd753",
+    "mapping_coverage.md": "4e036d697f629b95fa05d026ba028cc649e17088e5223fb771f75e1e51e0edd6"
+  }
+}

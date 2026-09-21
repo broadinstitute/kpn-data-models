@@ -1,0 +1,73 @@
+name: Publish latest release to Pages
+on:
+  release:
+    types: [published, edited, released]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Site implementation follows main; data always comes from a release.
+          ref: ${{ github.event.repository.default_branch }}
+          path: source
+      - name: Resolve the latest stable published release
+        id: latest
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          tag=$(gh api "repos/$REPOSITORY/releases/latest" --jq .tag_name)
+          if [[ ! "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Expected a stable release tag such as v0.0.1; got $tag" >&2
+            exit 1
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.latest.outputs.tag }}
+          path: released-data
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --frozen
+        working-directory: source
+      - name: Validate the v0.0.1 regression baseline
+        run: uv run python -m unittest discover -s tests -v
+        working-directory: source
+      - uses: actions/configure-pages@v5
+        id: pages
+      - name: Build pages from the released snapshot
+        working-directory: source
+        env:
+          RELEASE: ${{ steps.latest.outputs.tag }}
+          REPOSITORY: ${{ github.repository }}
+          BASE_PATH: ${{ steps.pages.outputs.base_path }}
+        run: >-
+          uv run python scripts/site/build.py
+          --data-dir "../released-data/versions/phenotype/$RELEASE"
+          --release "$RELEASE"
+          --repository "$REPOSITORY"
+          --base-path "$BASE_PATH"
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: source/site/_build
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/deploy-pages@v4
+        id: deployment

@@ -2,16 +2,14 @@
 # Generate portal phenotype data model from source files.
 #
 # Usage:
-#   ./scripts/phenotype/generate.sh              # full pipeline, outputs v0.0.1
-#   ./scripts/phenotype/generate.sh --version 0.0.2  # custom version
-#   ./scripts/phenotype/generate.sh --skip-owl    # skip OWL parsing (uses cached xrefs)
-#   ./scripts/phenotype/generate.sh --skip-api    # skip OLS/OMIM API calls
+#   ./scripts/phenotype/v0.0.1/generate.sh --from-release versions/phenotype/v0.0.1
+#   ./scripts/phenotype/v0.0.1/generate.sh --skip-owl --skip-api
 #
 # Pipeline:
 #   01_parse_sources.py     — parse raw source files
 #   02_parse_efo_xrefs.py   — extract cross-references from EFO/ORDO OWL
 #   03_enrich.py            — OLS API + GWAS Catalog + xref expansion + labels + validation
-#   04_generate_output.py   — assign PORTAL IDs, write versioned SSSOM + YAML
+#   04_generate_output.py   — assign KPN.TRAIT IDs, write versioned SSSOM + YAML
 #   05_quality_report.py    — generate coverage report
 
 set -euo pipefail
@@ -23,12 +21,14 @@ cd "$REPO_ROOT"
 VERSION="0.0.1"
 SKIP_OWL=false
 SKIP_API=false
+FROM_RELEASE=""
 
 while [[ $# -gt 0 ]]; do
     case $1 in
         --version) VERSION="$2"; shift 2 ;;
         --skip-owl) SKIP_OWL=true; shift ;;
         --skip-api) SKIP_API=true; shift ;;
+        --from-release) FROM_RELEASE="$2"; shift 2 ;;
         *) echo "Unknown option: $1"; exit 1 ;;
     esac
 done
@@ -37,6 +37,12 @@ echo "============================================"
 echo "Portal Phenotype Data Model — v${VERSION}"
 echo "============================================"
 echo ""
+
+if [ -n "$FROM_RELEASE" ]; then
+    uv run python scripts/phenotype/v0.0.1/04_generate_output.py --version "$VERSION" --from-release "$FROM_RELEASE"
+    uv run python scripts/phenotype/v0.0.1/05_quality_report.py --version "$VERSION"
+    exit 0
+fi
 
 # Step 1: Parse sources
 echo ">>> Step 1: Parsing source files..."

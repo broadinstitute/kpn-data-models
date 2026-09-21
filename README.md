@@ -1,14 +1,14 @@
-# Portal Data Models
+# KPN Data Models
 
 Unified, standards-compliant data models for phenotypes and other entities used across the [A2F Knowledge Portal](https://a2f.hugeamp.org/) and related Flannick Lab resources.
 
-**[Browse the phenotype mappings interactively](https://akleao.com/preview/561bd3b1-8308-43f2-a9af-4deae461c61b)**
+**Phenotype browser:** `https://broadinstitute.github.io/kpn-data-models/` (available after the first release deployment).
 
 ## What's in here
 
 Each phenotype in the portal gets:
 
-- A **stable numeric ID** (`PORTAL:0000001` through `PORTAL:0006982`)
+- A **stable numeric ID** (`KPN.TRAIT:0000001` through `KPN.TRAIT:0008402`)
 - A **trait type classification** (disease, measurement, interaction, stratified, adjusted, etc.)
 - **Cross-ontology mappings** to EFO, MESH, MONDO, HP, DOID, ORPHANET, CHEBI, OBA, CMO, and ICD10CM
 - A **SKOS predicate** for each mapping (`exactMatch`, `broadMatch`, `closeMatch`, `narrowMatch`, `relatedMatch`)
@@ -22,7 +22,10 @@ Output is a [LinkML](https://linkml.io/) schema with data conforming to the [SSS
 # Install dependencies
 uv sync
 
-# Generate v0.0.1 from source files (~5 min first run)
+# Rebuild the release offline, preserving all reviewed mappings
+./scripts/phenotype/v0.0.1/generate.sh --from-release versions/phenotype/v0.0.1
+
+# Re-enrich from source files (live ontology services may change results)
 ./scripts/phenotype/v0.0.1/generate.sh
 
 # Fast rebuild (skip OWL parsing + API calls)
@@ -72,13 +75,13 @@ portal-data-models/
 
 ## Versioning philosophy
 
-Every version is **fully reproducible** from its scripts and inputs.
+Release exports are checked in. Offline regeneration is reproducible from these snapshots; enrichment against live ontology APIs can change results.
 
 ### How versions work
 
 Each version has its own scripts directory (`scripts/phenotype/v{X.Y.Z}/`) and output directory (`versions/phenotype/v{X.Y.Z}/`). This creates a complete chain of provenance:
 
-- **v0.0.1** — the base version. Generated entirely from raw source files (`raw/phenotype/`). Running `scripts/phenotype/v0.0.1/generate.sh` always produces the same output. This is the automated baseline.
+- **v0.0.1** — the base version, with 8,402 phenotypes and 24,050 mappings, including 1,420 PIGEAN additions. Its IDs use `KPN.TRAIT:` with exactly the same numeric suffixes as the former `PORTAL:` identifiers. The `portal_id` column and export filenames remain unchanged for compatibility. Use `--from-release` for an exact offline rebuild. Live re-enrichment must pass the regression checks before release.
 
 - **v0.0.2, v0.0.3, ...** — refinement versions. Each builds on the *previous version's output* as its starting point (e.g., v0.0.2 reads `versions/phenotype/v0.0.1/portal_phenotypes.yaml`). Scripts in these versions make targeted corrections: fixing bad mappings, adding missing ones, updating predicates, etc.
 
@@ -107,7 +110,7 @@ Each version has its own scripts directory (`scripts/phenotype/v{X.Y.Z}/`) and o
 
    # Apply corrections
    for pheno in data["phenotypes"]:
-       if pheno["portal_id"] == "PORTAL:0000042":
+       if pheno["portal_id"] == "KPN.TRAIT:0000042":
            # Fix: AF was mapped to wrong MeSH term
            ...
 
@@ -157,7 +160,7 @@ The base version runs 5 steps via `generate.sh`:
 | 1 | `01_parse_sources.py` | Parse Phenotypes.tsv, MeSH mappings, AMP/EFO mappings, GWAS Catalog, Orphanet IDs | ~5s |
 | 2 | `02_parse_efo_xrefs.py` | Extract cross-references from EFO and ORDO OWL files | ~75s |
 | 3 | `03_enrich.py` | 7-phase enrichment: xref expansion, OLS API, GWAS Catalog, broad EFO, ICD10CM chaining, label backfill, validation | ~4 min |
-| 4 | `04_generate_output.py` | Assign PORTAL IDs, generate SSSOM + YAML + registry + flattened TSV | ~5s |
+| 4 | `04_generate_output.py` | Assign KPN.TRAIT IDs, generate SSSOM + YAML + registry + flattened TSV | ~5s |
 | 5 | `05_quality_report.py` | Generate mapping coverage report | ~2s |
 
 Flags: `--skip-owl` reuses cached OWL cross-references. `--skip-api` skips OLS/OMIM API calls.
@@ -221,3 +224,15 @@ Install with `uv sync`. Key packages: `linkml`, `rdflib`, `pandas`, `aiohttp`, `
 ## Optional: OMIM labels
 
 Create `.env` at repo root with `OMIM_API_KEY=your_key_here` ([get one](https://omim.org/api)). Without it, OMIM mappings are included but without labels.
+
+## GitHub Pages and release checks
+
+The phenotype browser is generated from the **latest stable GitHub release**. Each trait has a permanent path such as `/kpn-data-models/kpn.trait/0000001/`, containing its names, classification, mappings, confidence, provenance, and JSON download. A searchable catalogue and complete release downloads are included.
+
+```bash
+uv run python -m unittest discover -s tests -v
+uv run python scripts/site/build.py --data-dir versions/phenotype/v0.0.1 --release v0.0.1
+python3 -m http.server 8000 --directory site/_build
+```
+
+See [Pages setup, release workflow, and regression checks](docs/github-pages.md) for the first deployment and future releases.
