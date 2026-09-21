@@ -15,7 +15,7 @@ site = load_module('site_builder', 'scripts/site/build.py')
 class SiteTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        data = yaml.load((RELEASE / 'portal_phenotypes.yaml').read_text(), Loader=yaml.CSafeLoader)
+        data = yaml.load((RELEASE / 'kpn_trait_collection.yaml').read_text(), Loader=yaml.CSafeLoader)
         cls.record = data['phenotypes'][0]
 
     def setUp(self):
@@ -27,7 +27,7 @@ class SiteTests(unittest.TestCase):
         self.record = copy.deepcopy(self.record)
         self.record['phenotype_name'] = 'Trait <script>alert("unsafe")</script> & name'
         self.record['mappings'][0]['notes'] = 'Review <b>this</b>'
-        (self.data / 'portal_phenotypes.yaml').write_text(yaml.safe_dump({'phenotypes': [self.record]}))
+        (self.data / 'kpn_trait_collection.yaml').write_text(yaml.safe_dump({'phenotypes': [self.record]}))
         for name in site.EXPORTS[1:]:
             (self.data / name).write_text('portal_id\tis_complex\nKPN.TRAIT:0000001\tfalse\n')
         self.output = self.root / 'public'
@@ -54,6 +54,7 @@ class SiteTests(unittest.TestCase):
         self.assertIn('Presbycusis', index[0]['search'])
         for name in site.EXPORTS:
             self.assertEqual((self.output / 'downloads' / name).read_bytes(), (self.data / name).read_bytes())
+            self.assertIn(f'/downloads/{name}', (self.output / 'index.html').read_text())
 
     def test_root_path_deployment(self):
         self.build('')
@@ -67,14 +68,14 @@ class SiteTests(unittest.TestCase):
             self.build()
 
     def test_rejects_unmigrated_release(self):
-        p = self.data / 'portal_phenotypes.yaml'
+        p = self.data / 'kpn_trait_collection.yaml'
         p.write_text(p.read_text().replace('KPN.TRAIT:', 'PORTAL:'))
         with self.assertRaisesRegex(ValueError, 'KPN.TRAIT'):
             self.build()
         self.assertFalse(self.output.exists())
 
     def test_rejects_inconsistent_release(self):
-        (self.data / 'portal_phenotypes_flat.tsv').write_text('portal_id\tis_complex\nKPN.TRAIT:0000002\tfalse\n')
+        (self.data / 'kpn_trait_flat.tsv').write_text('portal_id\tis_complex\nKPN.TRAIT:0000002\tfalse\n')
         with self.assertRaisesRegex(ValueError, 'disagree'):
             self.build()
 

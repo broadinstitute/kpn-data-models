@@ -5,9 +5,9 @@ Reads:
   - data/phenotype/03_ols_enriched_mappings.json
 
 Writes (into data/phenotype/v{VERSION}/):
-  - portal_phenotype_registry.tsv — the ID registry
-  - portal_phenotype_mappings.sssom.tsv — SSSOM mapping set
-  - portal_phenotypes.yaml — LinkML instance data
+  - kpn_trait_registry.tsv — the ID registry
+  - kpn_trait_mappings.sssom.tsv — SSSOM mapping set
+  - kpn_trait_collection.yaml — LinkML instance data
 
 The base version generated from source files is always v0.0.1.
 Subsequent manual curation versions increment from there.
@@ -65,9 +65,9 @@ def load_release(release_dir: Path) -> list[dict]:
     The flat export carries the original dichotomous/complex flags, which are
     not both represented in the LinkML collection.
     """
-    with (release_dir / "portal_phenotypes.yaml").open() as f:
+    with (release_dir / "kpn_trait_collection.yaml").open() as f:
         phenotypes = yaml.safe_load(f)["phenotypes"]
-    with (release_dir / "portal_phenotypes_flat.tsv").open(newline="") as f:
+    with (release_dir / "kpn_trait_flat.tsv").open(newline="") as f:
         flags = {}
         for row in csv.DictReader(f, delimiter="\t"):
             flags.setdefault(row["portal_id"], row)
@@ -363,13 +363,13 @@ def main():
     registry = args.registry
     if registry is None:
         candidates = [
-            (args.from_release or version_dir) / "portal_phenotype_registry.tsv",
-            VERSIONS / "v0.0.1" / "portal_phenotype_registry.tsv",
+            (args.from_release or version_dir) / "kpn_trait_registry.tsv",
+            VERSIONS / "v0.0.1" / "kpn_trait_registry.tsv",
         ]
         registry = next((path for path in candidates if path.exists()), None)
     mapping_date = args.mapping_date
     if args.from_release and mapping_date is None:
-        metadata = (args.from_release / "portal_phenotype_mappings.sssom.tsv").read_text()
+        metadata = (args.from_release / "kpn_trait_mappings.sssom.tsv").read_text()
         match = re.search(r"^# mapping_set_version: .*\((\d{4}-\d{2}-\d{2})\)$", metadata, re.M)
         if not match:
             raise ValueError("Source release has no mapping date; pass --mapping-date")
@@ -381,14 +381,14 @@ def main():
     print(f"  {records[0]['portal_id']} to {records[-1]['portal_id']}\n")
 
     print("Generating output files...")
-    generate_registry(records, version_dir / "portal_phenotype_registry.tsv")
-    generate_sssom(records, version_dir / "portal_phenotype_mappings.sssom.tsv", version, mapping_date)
-    generate_linkml_instances(records, version_dir / "portal_phenotypes.yaml")
-    generate_flattened_tsv(records, version_dir / "portal_phenotypes_flat.tsv")
+    generate_registry(records, version_dir / "kpn_trait_registry.tsv")
+    generate_sssom(records, version_dir / "kpn_trait_mappings.sssom.tsv", version, mapping_date)
+    generate_linkml_instances(records, version_dir / "kpn_trait_collection.yaml")
+    generate_flattened_tsv(records, version_dir / "kpn_trait_flat.tsv")
 
     print(f"\nOutput: {version_dir}/")
     print(f"\nTo validate:")
-    print(f"  linkml-validate -s schemas/phenotype/portal_phenotype.yaml {version_dir}/portal_phenotypes.yaml")
+    print(f"  linkml-validate -s schemas/phenotype/portal_phenotype.yaml {version_dir}/kpn_trait_collection.yaml")
 
 
 if __name__ == "__main__":

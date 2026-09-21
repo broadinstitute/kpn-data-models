@@ -17,9 +17,9 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[2]
 EXPORTS = (
-    'portal_phenotypes.yaml', 'portal_phenotypes_flat.tsv',
-    'portal_phenotype_registry.tsv', 'portal_phenotype_mappings.sssom.tsv',
-    'mapping_coverage.md',
+    'kpn_trait_collection.yaml', 'kpn_trait_flat.tsv',
+    'kpn_trait_registry.tsv', 'kpn_trait_mappings.sssom.tsv',
+    'kpn_trait_coverage.md',
 )
 ONTOLOGY_URLS = {
     'EFO': 'http://www.ebi.ac.uk/efo/EFO_',
@@ -62,7 +62,7 @@ def render_page(title, body, base_path, release, repository, script=''):
 <a href="{esc(base)}/kpn.trait/">Phenotypes</a><a href="https://github.com/{esc(repository)}">Repository</a>
 <a class="release" href="{esc(release_url)}">Release {esc(release)}</a></nav></header>
 <main id="main">{body}</main>
-<footer>Knowledge Portal Network <span>Data from <a href="{esc(release_url)}">{esc(release)}</a> · <a href="{esc(base)}/downloads/mapping_coverage.md">Coverage report</a></span></footer>
+<footer>Knowledge Portal Network <span>Data from <a href="{esc(release_url)}">{esc(release)}</a> · <a href="{esc(base)}/downloads/kpn_trait_coverage.md">Coverage report</a></span></footer>
 </body></html>'''
 
 
@@ -140,7 +140,7 @@ def build_site(data_dir, output, release, repository, base_path=''):
     schema = json.loads(JsonSchemaGenerator(str(ROOT / 'schemas/phenotype/portal_phenotype.yaml')).serialize())
     Draft7Validator(schema).validate(collection)
     flat = {}
-    with (data_dir / 'portal_phenotypes_flat.tsv').open(newline='') as f:
+    with (data_dir / 'kpn_trait_flat.tsv').open(newline='') as f:
         for row in csv.DictReader(f, delimiter='\t'):
             flat.setdefault(row['portal_id'], row)
     if set(flat) != set(ids):

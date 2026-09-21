@@ -25,7 +25,7 @@ versions/phenotype/v{X.Y.Z}/            — Versioned output (checked into git)
 Every version is deterministically reproducible from its scripts + inputs:
 
 - **v0.0.1** — base version, generated from `raw/phenotype/*` source files. `scripts/phenotype/v0.0.1/generate.sh` runs the full pipeline.
-- **v0.0.2+** — refinement versions. Each reads the **previous version's output** (`versions/phenotype/v{prev}/portal_phenotypes.yaml`) and applies targeted corrections. Scripts live in `scripts/phenotype/v{X.Y.Z}/`.
+- **v0.0.2+** — refinement versions. Each reads the **previous version's output** (`versions/phenotype/v{prev}/kpn_trait_collection.yaml`) and applies targeted corrections. Scripts live in `scripts/phenotype/v{X.Y.Z}/`.
 
 ```
 raw/phenotype/*  ──→  scripts/v0.0.1/  ──→  versions/v0.0.1/
@@ -114,7 +114,7 @@ The base version pipeline (`scripts/phenotype/v0.0.1/generate.sh`) has 5 steps:
 
 4. **04_generate_output.py** — Assigns `KPN.TRAIT:NNNNNNN` IDs by reusing the versioned registry; new traits receive IDs above the current maximum. Writes versioned SSSOM, YAML, and registry TSV.
 
-5. **05_quality_report.py** — Generates `mapping_coverage.md` with coverage stats, quality target checks, and predicate distribution.
+5. **05_quality_report.py** — Generates `kpn_trait_coverage.md` with coverage stats, quality target checks, and predicate distribution.
 
 ## Tools at Your Disposal
 

@@ -63,11 +63,11 @@ portal-data-models/
 │
 ├── versions/phenotype/                    # Versioned output (checked into git)
 │   └── v0.0.1/
-│       ├── portal_phenotypes.yaml              # Full phenotype collection (LinkML)
-│       ├── portal_phenotypes_flat.tsv          # Flattened one-row-per-mapping TSV
-│       ├── portal_phenotype_mappings.sssom.tsv # SSSOM mapping set
-│       ├── portal_phenotype_registry.tsv       # ID registry
-│       └── mapping_coverage.md                 # Quality report
+│       ├── kpn_trait_collection.yaml     # Full phenotype collection (LinkML)
+│       ├── kpn_trait_flat.tsv            # Flattened one-row-per-mapping TSV
+│       ├── kpn_trait_mappings.sssom.tsv  # SSSOM mapping set
+│       ├── kpn_trait_registry.tsv        # ID registry
+│       └── kpn_trait_coverage.md         # Quality report
 │
 ├── .env                                   # API keys (optional, gitignored)
 └── pyproject.toml
@@ -81,9 +81,9 @@ Release exports are checked in. Offline regeneration is reproducible from these 
 
 Each version has its own scripts directory (`scripts/phenotype/v{X.Y.Z}/`) and output directory (`versions/phenotype/v{X.Y.Z}/`). This creates a complete chain of provenance:
 
-- **v0.0.1** — the base version, with 8,402 phenotypes and 24,050 mappings, including 1,420 PIGEAN additions. Its IDs use `KPN.TRAIT:` with exactly the same numeric suffixes as the former `PORTAL:` identifiers. The `portal_id` column and export filenames remain unchanged for compatibility. Use `--from-release` for an exact offline rebuild. Live re-enrichment must pass the regression checks before release.
+- **v0.0.1** — the base version, with 8,402 phenotypes and 24,050 mappings, including 1,420 PIGEAN additions. Its IDs use `KPN.TRAIT:` with exactly the same numeric suffixes as the former `PORTAL:` identifiers. All release exports use the `kpn_trait_` filename prefix; the `portal_id` column is retained for compatibility. Use `--from-release` for an exact offline rebuild. Live re-enrichment must pass the regression checks before release.
 
-- **v0.0.2, v0.0.3, ...** — refinement versions. Each builds on the *previous version's output* as its starting point (e.g., v0.0.2 reads `versions/phenotype/v0.0.1/portal_phenotypes.yaml`). Scripts in these versions make targeted corrections: fixing bad mappings, adding missing ones, updating predicates, etc.
+- **v0.0.2, v0.0.3, ...** — refinement versions. Each builds on the *previous version's output* as its starting point (e.g., v0.0.2 reads `versions/phenotype/v0.0.1/kpn_trait_collection.yaml`). Scripts in these versions make targeted corrections: fixing bad mappings, adding missing ones, updating predicates, etc.
 
 - **v0.1.0, v1.0.0, ...** — major versions for schema changes, new source data, or significant re-curation.
 
@@ -95,7 +95,7 @@ Each version has its own scripts directory (`scripts/phenotype/v{X.Y.Z}/`) and o
    ```
 
 2. **Write scripts that transform the previous version's output.** Your scripts should:
-   - Read from `versions/phenotype/v0.0.1/portal_phenotypes.yaml` (or the SSSOM/JSON)
+   - Read from `versions/phenotype/v0.0.1/kpn_trait_collection.yaml` (or the SSSOM/JSON)
    - Apply specific, documented changes (fix mappings, add new ones, etc.)
    - Write to `versions/phenotype/v0.0.2/`
 
@@ -105,7 +105,7 @@ Each version has its own scripts directory (`scripts/phenotype/v{X.Y.Z}/`) and o
    """Fix specific mapping issues identified in v0.0.1 review."""
 
    # Read v0.0.1 output
-   with open(VERSIONS / "v0.0.1" / "portal_phenotypes.yaml") as f:
+   with open(VERSIONS / "v0.0.1" / "kpn_trait_collection.yaml") as f:
        data = yaml.safe_load(f)
 
    # Apply corrections
@@ -175,7 +175,7 @@ Flags: `--skip-owl` reuses cached OWL cross-references. `--skip-api` skips OLS/O
 
 ## Reviewing mappings
 
-Every version includes `portal_phenotypes_flat.tsv` — a flattened one-row-per-mapping TSV with all phenotype and mapping fields. Open it in Excel, Google Sheets, or any dashboard tool to browse, filter, and spot-check mappings.
+Every version includes `kpn_trait_flat.tsv` — a flattened one-row-per-mapping TSV with all phenotype and mapping fields. Open it in Excel, Google Sheets, or any dashboard tool to browse, filter, and spot-check mappings.
 
 Key columns for review:
 - `gwas_source_category` — source collection (portal, gcat_trait, rare_v2)

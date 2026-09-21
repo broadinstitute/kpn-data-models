@@ -6,11 +6,11 @@ Usage:
   python 05_quality_report.py --version 0.0.2
 
 Reads:
-  - data/phenotype/v{VERSION}/portal_phenotype_registry.tsv
-  - data/phenotype/v{VERSION}/portal_phenotype_mappings.sssom.tsv
+  - data/phenotype/v{VERSION}/kpn_trait_registry.tsv
+  - data/phenotype/v{VERSION}/kpn_trait_mappings.sssom.tsv
 
 Writes:
-  - data/phenotype/v{VERSION}/mapping_coverage.md
+  - data/phenotype/v{VERSION}/kpn_trait_coverage.md
 
 Dependencies: pandas
 """
@@ -32,8 +32,8 @@ def main():
 
     VERSIONS = ROOT / "versions" / "phenotype"
     version_dir = VERSIONS / f"v{args.version}"
-    registry_path = version_dir / "portal_phenotype_registry.tsv"
-    sssom_path = version_dir / "portal_phenotype_mappings.sssom.tsv"
+    registry_path = version_dir / "kpn_trait_registry.tsv"
+    sssom_path = version_dir / "kpn_trait_mappings.sssom.tsv"
 
     if not registry_path.exists() or not sssom_path.exists():
         print(f"ERROR: v{args.version} output not found at {version_dir}")
@@ -150,7 +150,7 @@ def main():
     for ttype, count in sorted(type_dist.items(), key=lambda x: -x[1]):
         lines.append(f"| {ttype} | {count} | {count/len(registry)*100:.1f}% |")
 
-    report_path = version_dir / "mapping_coverage.md"
+    report_path = version_dir / "kpn_trait_coverage.md"
     with open(report_path, "w") as f:
         f.write("\n".join(lines))
     print(f"\nWrote {report_path}")

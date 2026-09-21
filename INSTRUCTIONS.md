@@ -313,7 +313,7 @@ enums:
       inherited: { description: "Inherited from a prior mapping file (portal_to_mesh or AMP)" }
 ```
 
-### SSSOM Output (`data/portal_phenotype_mappings.sssom.tsv`)
+### SSSOM Output (`data/kpn_trait_mappings.sssom.tsv`)
 
 In addition to the LinkML instances, produce a standard SSSOM TSV:
 
@@ -401,14 +401,14 @@ KPN.TRAIT:0000001	Atrial Fibrillation	skos:exactMatch	MONDO:0004981	atrial fibri
 - Assign `KPN.TRAIT:NNNNNNN` IDs
 - Generate:
   - `schema/portal_phenotype.yaml` — the LinkML schema (use the template above)
-  - `data/portal_phenotype_registry.tsv` — the ID registry
-  - `data/portal_phenotype_mappings.sssom.tsv` — SSSOM mapping set
-  - `data/portal_phenotypes.yaml` — full LinkML instance data
+  - `data/kpn_trait_registry.tsv` — the ID registry
+  - `data/kpn_trait_mappings.sssom.tsv` — SSSOM mapping set
+  - `data/kpn_trait_collection.yaml` — full LinkML instance data
 - Validate with `linkml-validate` and `sssom validate` (ask user to run)
 
 ### Step 6: Quality Report
 - Script: `scripts/06_quality_report.py`
-- Generate `reports/mapping_coverage.md`:
+- Generate `reports/kpn_trait_coverage.md`:
   - Mapping coverage by ontology (% of phenotypes with EFO, MeSH, MONDO, HP mapping)
   - Coverage by trait_group and display_group
   - List of phenotypes with no mappings

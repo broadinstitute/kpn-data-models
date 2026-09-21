@@ -5,6 +5,8 @@ import hashlib
 import importlib.util
 import json
 import re
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -46,7 +48,7 @@ class ReleaseRegressionTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.baseline = json.loads((ROOT / 'tests/fixtures/v0.0.1-baseline.json').read_text())
-        cls.phenotypes = yaml.load((RELEASE / 'portal_phenotypes.yaml').read_text(), Loader=yaml.CSafeLoader)['phenotypes']
+        cls.phenotypes = yaml.load((RELEASE / 'kpn_trait_collection.yaml').read_text(), Loader=yaml.CSafeLoader)['phenotypes']
 
     def test_all_release_content_matches_pre_migration_baseline(self):
         # Includes every label, number, mapping, primary selection, predicate,
@@ -61,15 +63,15 @@ class ReleaseRegressionTests(unittest.TestCase):
         self.assertEqual(len(self.phenotypes), len(expected))
         self.assertTrue(all(re.fullmatch(r'KPN\.TRAIT:[0-9]{7}', pid) for pid in expected))
         self.assertEqual(sum(len(p.get('mappings', [])) for p in self.phenotypes), self.baseline['mappings'])
-        for filename, field in [('portal_phenotype_registry.tsv', 'portal_id'), ('portal_phenotypes_flat.tsv', 'portal_id'), ('portal_phenotype_mappings.sssom.tsv', 'subject_id')]:
+        for filename, field in [('kpn_trait_registry.tsv', 'portal_id'), ('kpn_trait_flat.tsv', 'portal_id'), ('kpn_trait_mappings.sssom.tsv', 'subject_id')]:
             with (RELEASE / filename).open(newline='') as f:
                 ids = {r[field] for r in csv.DictReader((line for line in f if not line.startswith('#')), delimiter='\t')}
             self.assertEqual(ids, expected)
-        text = (RELEASE / 'portal_phenotype_mappings.sssom.tsv').read_text()
+        text = (RELEASE / 'kpn_trait_mappings.sssom.tsv').read_text()
         self.assertIn(f'#   KPN.TRAIT: {generator.TRAIT_BASE_URL}', text)
         self.assertNotIn('PORTAL:', text)
         metadata = yaml.safe_load('\n'.join(line[2:] for line in text.splitlines() if line.startswith('# ')))
-        with (RELEASE / 'portal_phenotype_mappings.sssom.tsv').open() as f:
+        with (RELEASE / 'kpn_trait_mappings.sssom.tsv').open() as f:
             for row in csv.DictReader((line for line in f if not line.startswith('#')), delimiter='\t'):
                 for field in ('subject_id', 'object_id', 'predicate_id', 'mapping_justification'):
                     self.assertIn(row[field].split(':')[0], metadata['curie_map'])
@@ -87,13 +89,16 @@ class ReleaseRegressionTests(unittest.TestCase):
         self.assertFalse(validator.is_valid({'phenotypes': [bad]}))
 
     def test_offline_regeneration_preserves_every_export(self):
-        records = generator.assign_portal_ids(generator.load_release(RELEASE), RELEASE / 'portal_phenotype_registry.tsv')
         with tempfile.TemporaryDirectory() as directory:
             dest = Path(directory)
-            generator.generate_registry(records, dest / 'portal_phenotype_registry.tsv')
-            generator.generate_sssom(records, dest / 'portal_phenotype_mappings.sssom.tsv', '0.0.1', '2026-04-06')
-            generator.generate_linkml_instances(records, dest / 'portal_phenotypes.yaml')
-            generator.generate_flattened_tsv(records, dest / 'portal_phenotypes_flat.tsv')
+            subprocess.run([
+                sys.executable, str(ROOT / 'scripts/phenotype/v0.0.1/04_generate_output.py'),
+                '--from-release', str(RELEASE), '--output-dir', str(dest),
+            ], check=True, capture_output=True, text=True)
+            self.assertEqual({path.name for path in dest.iterdir()}, {
+                'kpn_trait_registry.tsv', 'kpn_trait_mappings.sssom.tsv',
+                'kpn_trait_collection.yaml', 'kpn_trait_flat.tsv',
+            })
             for path in dest.iterdir():
                 self.assertEqual(path.read_bytes(), (RELEASE / path.name).read_bytes(), path.name)
 
