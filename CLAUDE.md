@@ -106,7 +106,7 @@ The base version pipeline (`scripts/phenotype/v0.0.1/generate.sh`) has 5 steps:
    - Phase 1: Expand existing mappings via xref table
    - Phase 2: OLS API search for phenotypes missing EFO/MONDO (strict lexical filtering)
    - Phase 3: GWAS Catalog MAPPED_TRAIT matching (handles comma-containing names)
-   - Phase 4: Broad EFO parent assignment for unmapped gcat_trait/portal phenotypes
+   - Phase 4: Broad EFO parent assignment for unmapped gcat_trait/KPN phenotypes
    - Phase 4b: ICD10CM chaining via MONDO→ICD10CM SSSOM files
    - Phase 5: Label backfill (xref cache → OLS API → OMIM API)
    - Phase 6: Validation fixes (downgrade bad predicates, cap confidence)
@@ -158,7 +158,7 @@ OLS fuzzy search returns garbage (e.g., "Principal Component Analysis" for an ag
 
 ### Quality targets
 
-- >90% of `portal` phenotypes mapped to at least one of {EFO, MONDO, MESH}
+- >90% of `KPN` phenotypes mapped to at least one of {EFO, MONDO, MESH}
 - >95% of `rare_v2` phenotypes mapped to ORPHANET
 - >80% of `gcat_trait` phenotypes mapped to EFO
 - Every mapping MUST have a predicate and justification

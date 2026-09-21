@@ -169,7 +169,7 @@ Flags: `--skip-owl` reuses cached OWL cross-references. `--skip-api` skips OLS/O
 
 | Target | Result |
 |--------|--------|
-| >90% portal phenotypes mapped to EFO/MONDO/MESH | 100% |
+| >90% KPN phenotypes mapped to EFO/MONDO/MESH | 100% |
 | >95% rare disease phenotypes mapped to ORPHANET | 100% |
 | >80% GWAS Catalog traits mapped to EFO | 100% |
 
@@ -178,7 +178,7 @@ Flags: `--skip-owl` reuses cached OWL cross-references. `--skip-api` skips OLS/O
 Every version includes `kpn_trait_flat.tsv` — a flattened one-row-per-mapping TSV with all phenotype and mapping fields. Open it in Excel, Google Sheets, or any dashboard tool to browse, filter, and spot-check mappings.
 
 Key columns for review:
-- `gwas_source_category` — source collection (portal, gcat_trait, rare_v2)
+- `gwas_source_category` — source collection (KPN, gcat_trait, rare_v2). The 1,439 core traits formerly labeled `portal` now use `KPN`; legacy inputs and registries are normalized without changing IDs.
 - `legacy_trait_group` — original display group from Phenotypes.tsv
 - `trait_group` — standardized biological category (30 groups, consolidated from 55 legacy groups)
 - `mapping_predicate` — filter by `skos:exactMatch` to review the highest-confidence mappings

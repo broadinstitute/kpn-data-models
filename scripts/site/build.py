@@ -174,7 +174,7 @@ def build_site(data_dir, output, release, repository, base_path=''):
 <section aria-label="Find phenotypes" id="catalog" data-index="{esc(base)}/kpn.trait/index.json" data-base="{esc(base)}">
 <div class="filters js-only"><label class="search-label">Search names, IDs, or mapped terms<input type="search" id="search" placeholder="Try atrial fibrillation, KPN.TRAIT:0000001, or EFO:0000275" autocomplete="off"></label>
 <label>Trait group<select id="group"><option value="">All groups</option>{options}</select></label>
-<label>Source<select id="source"><option value="">All sources</option><option>portal</option><option>gcat_trait</option><option>rare_v2</option></select></label></div>
+<label>Source<select id="source"><option value="">All sources</option><option>KPN</option><option>gcat_trait</option><option>rare_v2</option></select></label></div>
 <p id="result-status" role="status" class="hint">Showing the first {min(50, len(records))} of {len(records):,} phenotypes.</p>
 <div class="table-scroll"><table class="results"><caption class="sr-only">Phenotype search results</caption><thead><tr><th scope="col">Phenotype</th><th scope="col">Trait group</th><th scope="col">Source</th><th scope="col">Mappings</th></tr></thead><tbody id="results">{''.join(result_row(r, base) for r in records[:50])}</tbody></table></div>
 <div class="pagination js-only"><button id="previous" disabled>Previous</button><span id="page-number"></span><button id="next" disabled>Next</button></div>

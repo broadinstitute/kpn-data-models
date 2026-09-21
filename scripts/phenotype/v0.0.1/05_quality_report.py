@@ -102,7 +102,7 @@ def main():
         "| Trait Group | Total | EFO | MESH | MONDO | ORPHANET | Any | None |",
         "|-------------|-------|-----|------|-------|----------|-----|------|",
     ]
-    for group in ["portal", "gcat_trait", "rare_v2"]:
+    for group in ["KPN", "gcat_trait", "rare_v2"]:
         s = group_stats.get(group, {})
         t = s.get("total", 1)
         lines.append(
@@ -116,12 +116,12 @@ def main():
         )
 
     # Quality targets
-    portal_s = group_stats.get("portal", {})
+    portal_s = group_stats.get("KPN", {})
     gcat_s = group_stats.get("gcat_trait", {})
     rare_s = group_stats.get("rare_v2", {})
     portal_efo_mondo = len(
         (mapped_by_ontology.get("EFO", set()) | mapped_by_ontology.get("MONDO", set()) | mapped_by_ontology.get("MESH", set()))
-        & set(registry[registry["gwas_source_category"] == "portal"]["portal_id"])
+        & set(registry[registry["gwas_source_category"] == "KPN"]["portal_id"])
     )
     check = lambda actual, target: "PASS" if actual >= target else "FAIL"
 
@@ -136,7 +136,7 @@ def main():
         "\n## Quality Targets\n",
         "| Target | Actual | Status |",
         "|--------|--------|--------|",
-        f"| >90% portal → EFO/MONDO/MESH | {pct1:.1f}% ({portal_efo_mondo}/{pt}) | {check(pct1, 90)} |",
+        f"| >90% KPN → EFO/MONDO/MESH | {pct1:.1f}% ({portal_efo_mondo}/{pt}) | {check(pct1, 90)} |",
         f"| >95% rare_v2 → ORPHANET | {pct2:.1f}% ({rare_s.get('ORPHANET',0)}/{rt}) | {check(pct2, 95)} |",
         f"| >80% gcat_trait → EFO | {pct3:.1f}% ({gcat_s.get('EFO',0)}/{gt}) | {check(pct3, 80)} |",
         "\n## Predicate Distribution\n",

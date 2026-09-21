@@ -22,7 +22,7 @@ All source files are in `raw/`. **Do not modify source files** — treat them as
 - **6,982 phenotypes** (no header row label — columns are tab-separated)
 - Columns: `trait_group | phenotype | phenotype_name | display_group`
 - Three trait groups:
-  - **`portal`** (1,437 rows): Core portal phenotypes. Legacy IDs like `AF`, `BMI`, `AFxBMI`, `AlbInT2D`
+  - **`portal`** (1,437 rows): Core portal phenotypes. Legacy IDs like `AF`, `BMI`, `AFxBMI`, `AlbInT2D`. Preserve this raw label; normalize it to `KPN` in generated records and registry identity matching.
   - **`gcat_trait`** (4,022 rows): GWAS Catalog-sourced traits. IDs have `gcat_trait_` prefix + snake_case name (e.g., `gcat_trait_Moyamoya_disease`)
   - **`rare_v2`** (1,523 rows): Rare disease phenotypes. IDs embed Orphanet codes (e.g., `HermanskyPudlak_syndrome_Orphanet_79430` → Orphanet:79430)
 - `display_group` provides a disease-area category (e.g., `CARDIOVASCULAR`, `GLYCEMIC`, `NEUROLOGICAL` — ~50 categories)
@@ -155,7 +155,7 @@ For **composite phenotypes** (interaction/stratified/adjusted), decompose them:
 After mappings are complete, assign new numeric IDs:
 
 - Format: `KPN.TRAIT:{NNNNNNN}` (7-digit zero-padded, e.g., `KPN.TRAIT:0000001`)
-- Reuse the numeric IDs in the existing versioned registry, keyed by source category and legacy phenotype ID. Append new IDs above the existing maximum; never renumber existing records. For a first-ever registry only, sort by `trait_group` (portal first, then gcat_trait, then rare_v2), then by `display_group`, then alphabetically by `phenotype`
+- Reuse the numeric IDs in the existing versioned registry, keyed by source category and legacy phenotype ID. Treat legacy `portal` and current `KPN` source categories as the same identity. Append new IDs above the existing maximum; never renumber existing records. For a first-ever registry only, sort by `trait_group` (KPN first, then gcat_trait, then rare_v2), then by `display_group`, then alphabetically by `phenotype`
 - Keep a registry mapping file (`data/portal_id_registry.tsv`) with columns:
   ```
   portal_id | legacy_trait_group | legacy_phenotype_id | phenotype_name | display_group | trait_type
@@ -267,7 +267,7 @@ classes:
 enums:
   TraitGroupEnum:
     permissible_values:
-      portal: { description: "Core portal phenotype" }
+      KPN: { description: "Core Knowledge Portal Network phenotype" }
       gcat_trait: { description: "GWAS Catalog-sourced trait" }
       rare_v2: { description: "Rare disease from Orphanet" }
 
@@ -494,7 +494,7 @@ mcp__ontology-lookup-service__getDescendants(ontologyId="efo", classIri="http://
 ## Quality Standards
 
 - Every phenotype in `Phenotypes.tsv` MUST have a `KPN.TRAIT:NNNNNNN` ID and a `trait_type` classification
-- Target: >90% of `portal` phenotypes mapped to at least one of {EFO, MONDO, MeSH}
+- Target: >90% of `KPN` phenotypes mapped to at least one of {EFO, MONDO, MeSH}
 - Target: >95% of `rare_v2` phenotypes mapped to Orphanet (they already have IDs embedded)
 - Target: >80% of `gcat_trait` phenotypes mapped to EFO (via GWAS Catalog)
 - Every mapping MUST have a `mapping_predicate` and `mapping_justification`

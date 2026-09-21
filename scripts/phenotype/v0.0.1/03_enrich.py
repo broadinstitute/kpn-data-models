@@ -632,10 +632,10 @@ def phase3_gwas_mapped_trait(records: list[dict]) -> int:
 # Phase 4: Broad EFO assignment
 # ══════════════════════════════════════════════════════════
 def phase4_broad_efo(records: list[dict]) -> int:
-    """Assign broad EFO parent terms for unmapped gcat_trait and portal phenotypes."""
+    """Assign broad EFO parent terms for unmapped gcat_trait and KPN phenotypes."""
     added = 0
     for r in records:
-        if r["gwas_source_category"] not in ("gcat_trait", "portal"):
+        if r["gwas_source_category"] not in ("gcat_trait", "KPN", "portal"):
             continue
 
         has_efo = any(m["target_ontology"] == "EFO" for m in r.get("mappings", []))
@@ -990,6 +990,10 @@ async def main_async(skip_api: bool = False):
 
     with open(consolidated_path) as f:
         records: list[dict] = json.load(f)
+    # Accept consolidated caches created before the source category rename.
+    for record in records:
+        if record["gwas_source_category"] == "portal":
+            record["gwas_source_category"] = "KPN"
     print(f"  Loaded {len(records)} phenotype records")
 
     xref_table_path = DATA / "02_ontology_xref_table.tsv"
@@ -1007,12 +1011,12 @@ async def main_async(skip_api: bool = False):
         print("  OMIM_API_KEY not found (OMIM label backfill will be skipped)")
 
     # Pre-enrichment coverage
-    portal_recs = [r for r in records if r["gwas_source_category"] == "portal"]
+    portal_recs = [r for r in records if r["gwas_source_category"] == "KPN"]
     gcat_recs = [r for r in records if r["gwas_source_category"] == "gcat_trait"]
     rare_recs = [r for r in records if r["gwas_source_category"] == "rare_v2"]
 
     print("\nPre-enrichment coverage:")
-    print(f"  portal  with EFO/MONDO : {count_coverage(portal_recs, ['EFO', 'MONDO'])}/{len(portal_recs)}")
+    print(f"  KPN     with EFO/MONDO : {count_coverage(portal_recs, ['EFO', 'MONDO'])}/{len(portal_recs)}")
     print(f"  gcat    with EFO/MONDO : {count_coverage(gcat_recs, ['EFO', 'MONDO'])}/{len(gcat_recs)}")
     print(f"  rare_v2 with Orphanet  : {count_coverage(rare_recs, ['ORPHANET'])}/{len(rare_recs)}")
 
@@ -1045,7 +1049,7 @@ async def main_async(skip_api: bool = False):
 
     # ── Phase 4: Broad EFO assignment ────────────────
     print("\n" + "-" * 60)
-    print("Phase 4: Broad EFO assignment for unmapped gcat_trait + portal phenotypes")
+    print("Phase 4: Broad EFO assignment for unmapped gcat_trait + KPN phenotypes")
     print("-" * 60)
     n = phase4_broad_efo(records)
     print(f"  Added {n} broad EFO mappings")
@@ -1125,12 +1129,12 @@ async def main_async(skip_api: bool = False):
     print("SUMMARY")
     print("=" * 60)
 
-    portal_enriched = [r for r in records if r["gwas_source_category"] == "portal"]
+    portal_enriched = [r for r in records if r["gwas_source_category"] == "KPN"]
     gcat_enriched = [r for r in records if r["gwas_source_category"] == "gcat_trait"]
     rare_enriched = [r for r in records if r["gwas_source_category"] == "rare_v2"]
 
     print("\nPost-enrichment coverage:")
-    print(f"  portal  with EFO/MONDO : {count_coverage(portal_enriched, ['EFO', 'MONDO'])}/{len(portal_enriched)}")
+    print(f"  KPN     with EFO/MONDO : {count_coverage(portal_enriched, ['EFO', 'MONDO'])}/{len(portal_enriched)}")
     print(f"  gcat    with EFO/MONDO : {count_coverage(gcat_enriched, ['EFO', 'MONDO'])}/{len(gcat_enriched)}")
     print(f"  rare_v2 with Orphanet  : {count_coverage(rare_enriched, ['ORPHANET'])}/{len(rare_enriched)}")
 

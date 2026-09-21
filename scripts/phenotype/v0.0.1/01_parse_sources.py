@@ -123,7 +123,7 @@ def parse_phenotypes(path: Path) -> list[dict]:
     for _, row in df.iterrows():
         records.append(
             {
-                "gwas_source_category": row["trait_group"],
+                "gwas_source_category": "KPN" if row["trait_group"] == "portal" else row["trait_group"],
                 "phenotype": row["phenotype"],
                 "phenotype_name": row["phenotype_name"],
                 "legacy_trait_group": row["display_group"],
@@ -506,7 +506,7 @@ def parse_pigean_missing(
     Handles three categories:
       - rare_v2_Orphanet_NNNNN → rare disease with ORDO name lookup
       - gcat_trait_* → GWAS Catalog trait
-      - everything else → portal phenotype
+      - everything else → KPN phenotype
     """
     if not path.exists():
         print(f"  WARNING: {path} not found, skipping PIGEAN phenotypes")
@@ -518,7 +518,7 @@ def parse_pigean_missing(
     print(f"  PIGEAN missing phenotypes file: {len(raw_ids)} entries")
 
     records: list[dict] = []
-    stats = {"rare_v2": 0, "gcat_trait": 0, "portal": 0, "names_resolved": 0}
+    stats = {"rare_v2": 0, "gcat_trait": 0, "KPN": 0, "names_resolved": 0}
 
     for raw_id in raw_ids:
         if raw_id.startswith("rare_v2_Orphanet_"):
@@ -603,10 +603,10 @@ def parse_pigean_missing(
             stats["gcat_trait"] += 1
 
         else:
-            # Portal phenotype (e.g., SerumUrea, Testosterone)
+            # KPN phenotype (e.g., SerumUrea, Testosterone)
             name = camel_case_to_name(raw_id)
             amp_info = amp_mappings.get(raw_id)
-            trait_type = classify_trait_type(raw_id, "portal", name, amp_info)
+            trait_type = classify_trait_type(raw_id, "KPN", name, amp_info)
 
             mappings = []
             if amp_info and amp_info["efo_id"] and amp_info["skos_predicate"]:
@@ -639,7 +639,7 @@ def parse_pigean_missing(
 
             records.append(
                 {
-                    "gwas_source_category": "portal",
+                    "gwas_source_category": "KPN",
                     "phenotype": raw_id,
                     "phenotype_name": name,
                     "legacy_trait_group": "OTHER",
@@ -653,11 +653,11 @@ def parse_pigean_missing(
                 records[-1]["amp_description"] = amp_info.get("description", "")
                 records[-1]["amp_complex"] = amp_info.get("complex_traits", "")
                 records[-1]["amp_dichotomous"] = amp_info.get("dichotomous", "")
-            stats["portal"] += 1
+            stats["KPN"] += 1
 
     print(f"    rare_v2:    {stats['rare_v2']} ({stats['names_resolved']} names resolved from ORDO)")
     print(f"    gcat_trait: {stats['gcat_trait']}")
-    print(f"    portal:     {stats['portal']}")
+    print(f"    KPN:        {stats['KPN']}")
 
     return records
 

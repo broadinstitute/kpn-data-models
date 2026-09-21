@@ -89,13 +89,19 @@ def assign_portal_ids(records: list[dict], registry_path: Path | None = None) ->
 
     Names and classifications may change without changing identity. Missing
     registry records fail closed so rebuilding cannot silently drop traits.
+    The legacy source category "portal" is an alias of "KPN" in both inputs
+    and registries, so the source rename never allocates a new identity.
     """
+    for record in records:
+        if record["gwas_source_category"] == "portal":
+            record["gwas_source_category"] = "KPN"
     assigned = {}
     used = set()
     if registry_path is not None:
         with registry_path.open(newline="") as f:
             for row in csv.DictReader(f, delimiter="\t"):
-                key = (row["gwas_source_category"], row["legacy_phenotype_id"])
+                source = row["gwas_source_category"]
+                key = ("KPN" if source == "portal" else source, row["legacy_phenotype_id"])
                 match = re.fullmatch(r"(?:PORTAL|KPN\.TRAIT):([0-9]{7})", row["portal_id"])
                 if not match or int(match[1]) == 0:
                     raise ValueError(f"Invalid registry ID: {row['portal_id']}")
@@ -110,7 +116,7 @@ def assign_portal_ids(records: list[dict], registry_path: Path | None = None) ->
     missing = assigned.keys() - set(keys)
     if missing:
         raise ValueError(f"Input drops {len(missing)} registered phenotypes: {sorted(missing)[:3]}")
-    group_order = {"portal": 0, "gcat_trait": 1, "rare_v2": 2}
+    group_order = {"KPN": 0, "gcat_trait": 1, "rare_v2": 2}
     records.sort(
         key=lambda r: (
             group_order.get(r["gwas_source_category"], 9),

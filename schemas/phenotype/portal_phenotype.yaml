@@ -65,7 +65,7 @@ classes:
       gwas_source_category:
         range: GwasSourceCategoryEnum
         required: true
-        description: "Source collection the phenotype originated from (portal, gcat_trait, rare_v2)"
+        description: "Source collection the phenotype originated from (KPN, gcat_trait, rare_v2)"
       phenotype_name:
         range: string
         required: true
@@ -138,8 +138,8 @@ enums:
   GwasSourceCategoryEnum:
     description: "Source collection the phenotype originated from"
     permissible_values:
-      portal:
-        description: "Core portal phenotype"
+      KPN:
+        description: "Core Knowledge Portal Network phenotype"
       gcat_trait:
         description: "GWAS Catalog-sourced trait"
       rare_v2:
